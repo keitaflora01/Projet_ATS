@@ -21,7 +21,7 @@ email-validator==2.1.1
 python-multipart==0.0.9
 
 # Testing
-pytest==8.1.1
+pytest==9.0.2
 
 # HTTP requests (optional)
 requests==2.31.0
