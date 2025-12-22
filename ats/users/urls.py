@@ -1,13 +1,9 @@
-"""URLs for users app (placeholder).
-
-Replace with API endpoints / DRF routers when implementing user routes.
-"""
-
 from django.urls import path
-from . import views
-
-app_name = "users"
+from ats.users.views.authentifications_views import RegisterView, UserProfileView, LogoutView, LoginView
 
 urlpatterns = [
-    path("placeholder/", views.placeholder, name="placeholder"),
+    path("api/register/", RegisterView.as_view(), name="register"),
+    path("api/login/", LoginView.as_view(), name="login"),
+    path("api/logout/", LogoutView.as_view(), name="logout"),
+    path("api/profile/", UserProfileView.as_view(), name="profile"),
 ]

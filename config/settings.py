@@ -49,6 +49,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "rest_framework",
+    "rest_framework.authtoken",
+    "drf_spectacular",
     "ats.users",
     "ats.jobs",
     "ats.candidates",
@@ -56,7 +59,23 @@ LOCAL_APPS = [
     "ats.applications",
     "ats.submissions",
     "ats.interviews",
+
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "ATS API",
+    "DESCRIPTION": "Documentation de l’API ATS",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
