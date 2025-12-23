@@ -1,27 +1,27 @@
 # Core
-python-dotenv==1.0.1
+python-dotenv==1.2.1
 
 # Web framework
-fastapi==0.110.0
-uvicorn==0.29.0
+fastapi==0.127.0
+uvicorn==0.40.0
 
 # Database
-sqlalchemy==2.0.29
-alembic==1.13.1
+sqlalchemy==2.0.45
+alembic==1.17.2
 
 # Authentication & Security
 passlib[bcrypt]==1.7.4
-python-jose==3.3.0
+python-jose==3.5.0
 
 # Validation & Serialization
-pydantic==2.6.4
-email-validator==2.1.1
+pydantic==2.12.5
+email-validator==2.3.0
 
 # File handling (CV, LM)
-python-multipart==0.0.9
+python-multipart==0.0.21
 
 # Testing
 pytest==8.1.1
 
 # HTTP requests (optional)
-requests==2.31.0
+requests==2.32.5
