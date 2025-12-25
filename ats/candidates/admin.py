@@ -14,13 +14,13 @@ class CandidateAdmin(admin.ModelAdmin):
         "desired_salary_display",
         "availability_date",
         "resume_link",               # Lien direct vers le CV
-        "created_at",
+        "created",
     )
     list_filter = (
         "years_of_experience",
         "availability_date",
         "location",
-        "created_at",
+        "created",
     )
     search_fields = (
         "user__email",
@@ -29,12 +29,12 @@ class CandidateAdmin(admin.ModelAdmin):
         "location",
     )
     readonly_fields = (
-        "created_at",
+        "created",
         "profile_picture_preview",
         "resume_preview",
     )
-    date_hierarchy = "created_at"
-    ordering = ("-created_at",)
+    date_hierarchy = "created"
+    ordering = ("-created",)
     autocomplete_fields = ("user",)  # Très pratique pour associer un utilisateur existant
 
     fieldsets = (
@@ -62,7 +62,7 @@ class CandidateAdmin(admin.ModelAdmin):
             )
         }),
         ("Dates", {
-            "fields": ("created_at",),
+            "fields": ("created",),
             "classes": ("collapse",),
         }),
     )

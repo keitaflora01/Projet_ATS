@@ -11,19 +11,19 @@ class SubmissionAdmin(admin.ModelAdmin):
         "candidate_display",
         "job_offer_title",
         "status_badge",
-        "submitted_at",
+        "created",
     )
-    list_filter = ("status", "submitted_at", "job_offer__recruiter__company_name")
+    list_filter = ("status", "created", "job_offer__recruiter__company_name")
     search_fields = (
         "candidate__user__email",
         "candidate__user__full_name",
         "job_offer__title",
         "job_offer__recruiter__company_name",
     )
-    readonly_fields = ("submitted_at", "updated_at")
+    readonly_fields = ("created", "modified")
     autocomplete_fields = ("candidate", "job_offer")
-    date_hierarchy = "submitted_at"
-    ordering = ("-submitted_at",)
+    date_hierarchy = "created"
+    ordering = ("-created",)
 
     fieldsets = (
         ("Candidature", {
@@ -38,7 +38,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             "classes": ("collapse",),
         }),
         ("Dates", {
-            "fields": ("submitted_at", "updated_at"),
+            "fields": ("created", "modified"),
             "classes": ("collapse",),
         }),
     )

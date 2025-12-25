@@ -24,7 +24,7 @@ class Testimonial(AtsBaseModel):
     
 
     class Meta:
-        ordering = ["order", "-created_at"]
+        ordering = ["order", "-created"]
         verbose_name = _("témoignage")
         verbose_name_plural = _("témoignages")
 

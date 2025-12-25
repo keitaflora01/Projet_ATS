@@ -25,7 +25,7 @@ class InterviewAdmin(admin.ModelAdmin):
         "submission__job_offer__title",
         "location_or_link",
     )
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("created", "modified")
     autocomplete_fields = ("submission",)
     date_hierarchy = "scheduled_at"
     ordering = ("-scheduled_at",)
@@ -41,7 +41,7 @@ class InterviewAdmin(admin.ModelAdmin):
         }),
         ("Lieu / Lien", {"fields": ("location_or_link",)}),
         ("Notes", {"fields": ("notes",), "classes": ("collapse",)}),
-        ("Dates", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+        ("Dates", {"fields": ("created", "modified"), "classes": ("collapse",)}),
     )
 
     def submission_display(self, obj):

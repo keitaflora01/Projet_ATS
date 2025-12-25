@@ -43,7 +43,7 @@ class Candidate(AtsBaseModel):
     
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["-created"]
         verbose_name = _("candidat")
         verbose_name_plural = _("candidats")
 

@@ -9,10 +9,10 @@ from .models.statistic_model import Statistic
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ("email", "full_name", "role", "is_active", "is_verified", "created_at")
+    list_display = ("email", "full_name", "role", "is_active", "is_verified", "created")
     list_filter = ("is_active", "is_verified", "role")
     search_fields = ("email", "full_name")
-    ordering = ("-created_at",)
+    ordering = ("-created",)
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Informations personnelles", {"fields": ("full_name", "role")}),
@@ -33,7 +33,7 @@ class ServiceAdmin(admin.ModelAdmin):
 
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
-    list_display = ("author_name", "rating", "is_approved", "created_at")
+    list_display = ("author_name", "rating", "is_approved", "created")
     list_filter = ("is_approved", "rating")
 
 @admin.register(Policy)

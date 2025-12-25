@@ -11,18 +11,18 @@ class RecruiterAdmin(admin.ModelAdmin):
         "position",
         "phone",
         "company_logo_preview",  # Aperçu du logo
-        "created_at",
+        "created",
     )
-    list_filter = ("created_at", "position")
+    list_filter = ("created", "position")
     search_fields = (
         "company_name",
         "user__email",           # Recherche par email de l'utilisateur lié
         "user__full_name",       # À adapter si ton User a full_name
         "phone",
     )
-    readonly_fields = ("created_at", "company_logo_preview")
-    date_hierarchy = "created_at"
-    ordering = ("-created_at",)
+    readonly_fields = ("created", "company_logo_preview")
+    date_hierarchy = "created"
+    ordering = ("-created",)
 
     fieldsets = (
         ("Informations entreprise", {
@@ -39,7 +39,7 @@ class RecruiterAdmin(admin.ModelAdmin):
             "fields": ("phone", "position"),
         }),
         ("Dates", {
-            "fields": ("created_at",),
+            "fields": ("created",),
             "classes": ("collapse",),
         }),
     )
