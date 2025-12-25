@@ -1,13 +1,17 @@
 import re
+import logging
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ats.users.api.serializers.auth_serializers import UserRegisterSerializer, UserLoginSerializer
 from ats.users.api.serializers.user_serializers import UserSerializer
+
+logger = logging.getLogger(__name__)
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
     if len(password) < 8:
@@ -21,56 +25,78 @@ def validate_password_strength(password: str) -> tuple[bool, str]:
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    serializer_class = UserRegisterSerializer
 
+    @extend_schema(
+        summary="Enregistrer un nouvel utilisateur",
+        description="Crée un utilisateur (Candidat ou Recruteur). Pour un recruteur, 'company_name' est requis.",
+        request=UserRegisterSerializer,
+        responses={201: UserSerializer, 400: "Erreur de validation"}
+    )
     def post(self, request):
-        print("\n=== REQUÊTE D'INSCRIPTION RECEIVED ===")
-        print("Données reçues :", request.data)
+        logger.info("Requête d'inscription reçue : %s", request.data.get("email"))
 
         serializer = UserRegisterSerializer(data=request.data)
         if not serializer.is_valid():
-            print("Erreurs de validation serializer :", serializer.errors)
+            logger.warning("Erreurs de validation inscription : %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         password = serializer.validated_data["password"]
         is_valid, message = validate_password_strength(password)
         if not is_valid:
-            print("Mot de passe faible :", message)
+            logger.warning("Mot de passe faible pour %s : %s", request.data.get("email"), message)
             return Response({"password": [message]}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = serializer.save()
-            print(f"Utilisateur créé avec succès : {user.email} (rôle: {user.role})")
+            logger.info("Utilisateur créé avec succès : %s (rôle: %s)", user.email, user.role)
             return Response({
                 "user": UserSerializer(user).data,
                 "message": "Utilisateur créé avec succès. Vous pouvez maintenant vous connecter."
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            print("Erreur lors de la création de l'utilisateur :", str(e))
+            logger.error("Erreur lors de la création de l'utilisateur %s : %s", request.data.get("email"), str(e), exc_info=True)
             return Response({"detail": "Erreur interne lors de la création."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    serializer_class = UserLoginSerializer
 
+    @extend_schema(
+        summary="Connexion utilisateur",
+        description="Authentifie l'utilisateur et retourne les tokens JWT (access + refresh) ainsi que le rôle.",
+        request=UserLoginSerializer,
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "refresh": {"type": "string"},
+                    "access": {"type": "string"},
+                    "role": {"type": "string"},
+                    "user": {"type": "object"} # On pourrait détailler le user schema ici
+                }
+            },
+            401: "Identifiants invalides",
+            400: "Données invalides ou compte désactivé"
+        }
+    )
     def post(self, request):
-        print("\n=== REQUÊTE DE CONNEXION RECEIVED ===")
-        print("Données reçues :", request.data)
+        logger.info("Tentative de connexion pour : %s", request.data.get("email"))
 
         serializer = UserLoginSerializer(data=request.data)
         if not serializer.is_valid():
-            print("Erreurs serializer login :", serializer.errors)
+            logger.warning("Erreurs validation login : %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         email = serializer.validated_data["email"]
         password = serializer.validated_data["password"]
 
-        print(f"Tentative de connexion avec email : {email}")
-
         user = authenticate(email=email, password=password)
         if user is not None:
             if user.is_active:
                 refresh = RefreshToken.for_user(user)
-                print(f"Connexion réussie pour {email}")
+                logger.info("Connexion réussie pour %s", email)
                 return Response({
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
@@ -78,25 +104,38 @@ class LoginView(APIView):
                     "role": user.role
                 })
             else:
-                print(f"Compte désactivé : {email}")
+                logger.warning("Compte désactivé pour %s", email)
                 return Response({"detail": "Compte désactivé."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print(f"Échec authentification pour {email} - mauvais email/mot de passe")
+            logger.warning("Échec authentification pour %s", email)
             return Response({"detail": "Email ou mot de passe incorrect."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Déconnexion",
+        description="Blacklist le refresh token fourni.",
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "refresh": {"type": "string"}
+                },
+                "required": ["refresh"]
+            }
+        },
+        responses={205: "Déconnexion réussie", 400: "Token invalide"}
+    )
     def post(self, request):
-        print("\n=== REQUÊTE DE DÉCONNEXION ===")
-        print("Utilisateur :", request.user.email if request.user else "Anonyme")
+        logger.info("Requête de déconnexion pour : %s", request.user.email)
         try:
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
-            print("Token mis en blacklist - Déconnexion réussie")
+            logger.info("Token blacklisté pour %s", request.user.email)
             return Response({"message": "Déconnexion réussie."}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            print("Erreur lors de la déconnexion :", str(e))
+            logger.error("Erreur déconnexion pour %s : %s", request.user.email, str(e))
             return Response({"detail": "Token invalide."}, status=status.HTTP_400_BAD_REQUEST)
