@@ -1,4 +1,3 @@
-# ats/users/api/views.py
 import re
 from rest_framework import status
 from rest_framework.views import APIView
@@ -7,13 +6,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
-from ats.users.api.serializers import (
-    UserLoginSerializer,
-    UserRegisterSerializer,
-    UserSerializer
-)
+from ats.users.api.serializers.auth_serializers import UserRegisterSerializer, UserLoginSerializer
+from ats.users.api.serializers.user_serializers import UserSerializer
 
-# Fonction de validation du mot de passe
 def validate_password_strength(password: str) -> tuple[bool, str]:
     if len(password) < 8:
         return False, "Le mot de passe doit contenir au moins 8 caractères."
@@ -79,7 +74,8 @@ class LoginView(APIView):
                 return Response({
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),
-                    "user": UserSerializer(user).data
+                    "user": UserSerializer(user).data,
+                    "role": user.role
                 })
             else:
                 print(f"Compte désactivé : {email}")
@@ -95,8 +91,6 @@ class LogoutView(APIView):
     def post(self, request):
         print("\n=== REQUÊTE DE DÉCONNEXION ===")
         print("Utilisateur :", request.user.email if request.user else "Anonyme")
-        print("Données :", request.data)
-
         try:
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
@@ -106,12 +100,3 @@ class LogoutView(APIView):
         except Exception as e:
             print("Erreur lors de la déconnexion :", str(e))
             return Response({"detail": "Token invalide."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        print(f"\n=== ACCÈS AU PROFIL === Utilisateur : {request.user.email}")
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data)
