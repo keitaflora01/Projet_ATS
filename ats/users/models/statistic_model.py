@@ -4,15 +4,9 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
-class Statistic(models.Model):
-    """
-    Statistiques affichées sur la page d'accueil (ex: nombre d'offres, candidats, etc.)
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class Statistic(AtsBaseModel):
     
     label = models.CharField(_("libellé"), max_length=200)
     value = models.CharField(

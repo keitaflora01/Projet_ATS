@@ -4,16 +4,14 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
-class Application(models.Model):
+from ats.core.models import AtsBaseModel
+
+class Application(AtsBaseModel):
     """
     Documents supplémentaires liés à une candidature (Submission)
     Relation OneToOne : une candidature = une application
     """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+    
     
     submission = models.OneToOneField(
         "submissions.Submission",  # On référence Submission (à convertir ensuite si pas déjà fait)

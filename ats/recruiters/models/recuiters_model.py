@@ -4,15 +4,9 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
-class Recruiter(models.Model):
-    """
-    Profil recruteur lié à un utilisateur (one-to-one)
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class Recruiter(AtsBaseModel):
     
     user = models.OneToOneField(
         "users.User",  # Référence à ton modèle User custom dans l'app users
@@ -28,8 +22,7 @@ class Recruiter(models.Model):
     phone = models.CharField(_("téléphone"), max_length=50, blank=True, null=True)
     position = models.CharField(_("poste"), max_length=150, blank=True, null=True, help_text=_("Ex: Responsable RH, Talent Acquisition Manager"))
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["company_name"]

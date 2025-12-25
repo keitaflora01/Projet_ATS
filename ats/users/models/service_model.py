@@ -4,15 +4,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class Service(models.Model):
-    """
-    Services mis en avant sur la page d'accueil (ex: pour candidats ou recruteurs)
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class Service(AtsBaseModel):
     
     title = models.CharField(_("titre"), max_length=200)
     description = models.TextField(_("description"))
@@ -35,8 +29,7 @@ class Service(models.Model):
     order = models.PositiveIntegerField(_("ordre d'affichage"), default=0)
     is_active = models.BooleanField(_("actif"), default=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["order", "title"]

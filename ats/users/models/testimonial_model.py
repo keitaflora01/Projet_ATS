@@ -4,15 +4,9 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
-class Testimonial(models.Model):
-    """
-    Témoignages affichés sur le site (page d'accueil ou section dédiée)
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class Testimonial(AtsBaseModel):
     
     author_name = models.CharField(_("nom de l'auteur"), max_length=200)
     author_role = models.CharField(_("poste/fonction"), max_length=150, blank=True, null=True)
@@ -27,7 +21,7 @@ class Testimonial(models.Model):
     is_approved = models.BooleanField(_("approuvé"), default=False)
     order = models.PositiveIntegerField(_("ordre d'affichage"), default=0)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    
 
     class Meta:
         ordering = ["order", "-created_at"]

@@ -19,15 +19,13 @@ class InterviewStatus(models.TextChoices):
     NO_SHOW = "no_show", _("Absent")
 
 
-class Interview(models.Model):
+from ats.core.models import AtsBaseModel
+
+class Interview(AtsBaseModel):
     """
     Entretien lié à une candidature (Submission)
     """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+    
     
     submission = models.ForeignKey(
         "submissions.Submission",
@@ -54,15 +52,14 @@ class Interview(models.Model):
     
     notes = models.TextField(_("notes"), blank=True, null=True)
     
-    status = models.CharField(
+    interview_status = models.CharField(
         _("statut"),
         max_length=20,
         choices=InterviewStatus.choices,
         default=InterviewStatus.SCHEDULED
     )
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["-scheduled_at"]

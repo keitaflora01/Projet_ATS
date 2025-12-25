@@ -3,7 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-import uuid
+from django.utils.translation import gettext_lazy as _
+from ats.core.models import AtsBaseModel
 
 
 class UserManager(BaseUserManager):
@@ -31,8 +32,7 @@ class UserRole(models.TextChoices):
     ADMIN = "admin", _("Administrateur")
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class User(AtsBaseModel, AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_("adresse email"), unique=True)
     full_name = models.CharField(_("nom complet"), max_length=255, blank=True)
     
@@ -46,8 +46,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()

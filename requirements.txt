@@ -1,27 +1,10 @@
-# Core
-python-dotenv==1.0.1
-
-# Web framework
-fastapi==0.110.0
-uvicorn==0.29.0
-
-# Database
-sqlalchemy==2.0.29
-alembic==1.13.1
-
-# Authentication & Security
-passlib[bcrypt]==1.7.4
-python-jose==3.3.0
-
-# Validation & Serialization
-pydantic==2.6.4
-email-validator==2.1.1
-
-# File handling (CV, LM)
-python-multipart==0.0.9
-
-# Testing
-pytest==8.1.1
-
-# HTTP requests (optional)
-requests==2.31.0
+backports.tarfile==1.2.0
+django-extensions==4.1
+djangorestframework==3.16.1
+importlib-metadata==8.0.0
+jaraco.collections==5.1.0
+packaging==24.2
+pip-chill==1.0.3
+platformdirs==4.2.2
+python-decouple==3.8
+tomli==2.0.1

@@ -13,15 +13,9 @@ class JobType(models.TextChoices):
     FREELANCE = "freelance", _("Freelance")
 
 
-class JobOffer(models.Model):
-    """
-    Offre d'emploi publiée par un recruteur
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class JobOffer(AtsBaseModel):
     
     recruiter = models.ForeignKey(
         "recruiters.Recruiter",  # Référence à l'app recruiters
@@ -63,8 +57,7 @@ class JobOffer(models.Model):
     expires_at = models.DateTimeField(_("date d'expiration"), blank=True, null=True)
     is_active = models.BooleanField(_("active"), default=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["-published_at"]

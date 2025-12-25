@@ -3,15 +3,9 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
-class Candidate(models.Model):
-    """
-    Profil candidat lié à un utilisateur (one-to-one)
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class Candidate(AtsBaseModel):
     
     user = models.OneToOneField(
         "users.User",  # Référence à ton modèle User custom dans l'app users
@@ -46,8 +40,7 @@ class Candidate(models.Model):
         null=True
     )
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["-created_at"]

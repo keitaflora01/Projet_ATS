@@ -3,15 +3,9 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 
 
-class Policy(models.Model):
-    """
-    Pages de politiques (Confidentialité, CGU, Cookies, etc.)
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+from ats.core.models import AtsBaseModel
+
+class Policy(AtsBaseModel):
     
     slug = models.SlugField(
         _("slug"),
@@ -24,7 +18,7 @@ class Policy(models.Model):
     version = models.CharField(_("version"), max_length=50, blank=True, null=True)
     is_active = models.BooleanField(_("active"), default=True)
     
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
         ordering = ["slug"]

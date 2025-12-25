@@ -12,16 +12,14 @@ class SubmissionStatus(models.TextChoices):
     ACCEPTED = "accepted", _("Acceptée")
 
 
-class Submission(models.Model):
+from ats.core.models import AtsBaseModel
+
+class Submission(AtsBaseModel):
     """
     Candidature d'un candidat à une offre d'emploi
     Lie Candidate ↔ JobOffer
     """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+    
     
     candidate = models.ForeignKey(
         "candidates.Candidate",
@@ -39,18 +37,17 @@ class Submission(models.Model):
     
     cover_letter = models.TextField(_("lettre de motivation"), blank=True, null=True)
     
-    status = models.CharField(
+    submission_status = models.CharField(
         _("statut"),
         max_length=30,
         choices=SubmissionStatus.choices,
         default=SubmissionStatus.SUBMITTED
     )
     
-    submitted_at = models.DateTimeField(_("date de soumission"), default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
+    
 
     class Meta:
-        ordering = ["-submitted_at"]
+        ordering = ["-created"]
         unique_together = ["candidate", "job_offer"]  # Un candidat ne postule qu'une fois par offre
         verbose_name = _("candidature")
         verbose_name_plural = _("candidatures")
