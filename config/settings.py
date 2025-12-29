@@ -46,6 +46,7 @@ THIRD_PARTY_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 LOCAL_APPS = [
@@ -65,8 +66,18 @@ LOCAL_APPS = [
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # Use JWT authentication (SimpleJWT). Keep SessionAuthentication for
+        # browsable API during development.
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        # Legacy token auth is still available if you use it elsewhere
         "rest_framework.authentication.TokenAuthentication",
     ],
+}
+
+# Simple JWT settings: accept the standard "Bearer" Authorization header.
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 SPECTACULAR_SETTINGS = {

@@ -6,7 +6,7 @@ import uuid
 
 from ats.core.models import AtsBaseModel
 
-class Recruiter(AtsBaseModel):
+class RecruiterProfile(AtsBaseModel):
     
     user = models.OneToOneField(
         "users.User",  # Référence à ton modèle User custom dans l'app users

@@ -18,7 +18,7 @@ from ats.core.models import AtsBaseModel
 class JobOffer(AtsBaseModel):
     
     recruiter = models.ForeignKey(
-        "recruiters.Recruiter",  # Référence à l'app recruiters
+        "recruiters.RecruiterProfile",  # Référence à l'app recruiters
         on_delete=models.CASCADE,
         related_name="job_offers",
         verbose_name=_("recruteur")

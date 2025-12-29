@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from ats.users.models.user_model import User, UserRole
 from ats.candidates.models.candidates_model import Candidate
-from ats.recruiters.models.recuiters_model import Recruiter
+from ats.recruiters.models.recruiters_model import Recruiter
 
 class AuthTests(APITestCase):
 

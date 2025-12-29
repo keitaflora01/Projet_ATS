@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.db import transaction
 from ats.users.models.user_model import User, UserRole
 from ats.candidates.models.candidates_model import Candidate
-from ats.recruiters.models.recuiters_model import Recruiter
+from ats.recruiters.models.recruiters_model import RecruiterProfile
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={"input_type": "password"})

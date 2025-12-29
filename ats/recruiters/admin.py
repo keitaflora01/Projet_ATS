@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from ats.recruiters.models.recuiters_model import Recruiter
+from ats.recruiters.models.recruiters_model import  RecruiterProfile
 
 
-@admin.register(Recruiter)
+@admin.register(RecruiterProfile)
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = (
         "company_name",
