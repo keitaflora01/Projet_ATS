@@ -4,6 +4,8 @@ from ats.users.models.user_model import User, UserRole
 from ats.candidates.models.candidates_model import Candidate
 from ats.recruiters.models.recruiters_model import RecruiterProfile
 
+Recruiter = RecruiterProfile
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={"input_type": "password"})
     password2 = serializers.CharField(write_only=True, required=True, label="Confirmer le mot de passe", style={"input_type": "password"})

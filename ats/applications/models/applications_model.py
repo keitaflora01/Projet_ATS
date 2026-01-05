@@ -1,32 +1,45 @@
-# ats/applications/models.py
+# ats/applications/models/applications_model.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import FileExtensionValidator
 import uuid
-
 
 from ats.core.models import AtsBaseModel
 
 class Application(AtsBaseModel):
     """
-    Documents supplémentaires liés à une candidature (Submission)
-    Relation OneToOne : une candidature = une application
+    Documents uploadés par le candidat pour une candidature
     """
-    
-    
     submission = models.OneToOneField(
-        "submissions.Submission",  # On référence Submission (à convertir ensuite si pas déjà fait)
+        "submissions.Submission",
         on_delete=models.CASCADE,
-        related_name="application",  # Permet submission.application
+        related_name="application",
         verbose_name=_("candidature")
     )
     
-    cv_url = models.URLField(_("CV"), blank=True, null=True)
-    portfolio_url = models.URLField(_("portfolio"), blank=True, null=True)
+    cv_file = models.FileField(
+        _("CV"),
+        upload_to="applications/cv/",
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc'])],
+        help_text=_("PDF ou Word uniquement, max 10 Mo")
+    )
+    
+    cover_letter_file = models.FileField(
+        _("Lettre de motivation"),
+        upload_to="applications/cover_letters/",
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'docx', 'doc'])],
+        help_text=_("PDF ou Word, optionnel")
+    )
+    
+    portfolio_url = models.URLField(_("portfolio (GitHub, site, etc.)"), blank=True, null=True)
+    
     other_documents = models.TextField(
         _("autres documents"),
         blank=True,
         null=True,
-        help_text=_("Liens séparés par des virgules ou JSON : ['lien1', 'lien2']")
+        help_text=_("Liens supplémentaires séparés par virgule")
     )
 
     class Meta:

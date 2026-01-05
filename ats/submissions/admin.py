@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
+from ats.agent.admin import AIAnalysisResultInline
 from ats.submissions.models.submissions_models import Submission, SubmissionStatus
 
 
@@ -12,6 +13,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         "job_offer_title",
         "status_badge",
         "created",
+        "ai_score_preview",
     )
     list_filter = ("status", "created", "job_offer__recruiter__company_name")
     search_fields = (
@@ -24,6 +26,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     autocomplete_fields = ("candidate", "job_offer")
     date_hierarchy = "created"
     ordering = ("-created",)
+    inlines = [AIAnalysisResultInline]
 
     fieldsets = (
         ("Candidature", {
@@ -70,3 +73,13 @@ class SubmissionAdmin(admin.ModelAdmin):
             color, text
         )
     status_badge.short_description = "Statut"
+
+    def ai_score_preview(self, obj):
+        try:
+            analysis = obj.ai_analysis
+            score = analysis.score
+            color = "green" if score >= 80 else "orange" if score >= 60 else "red"
+            return format_html('<strong style="color:{};">{}%</strong>', color, score)
+        except Exception:
+            return "-"
+    ai_score_preview.short_description = "Score IA"

@@ -1,4 +1,3 @@
-# ats/recruiters/models.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import uuid
@@ -32,3 +31,9 @@ class RecruiterProfile(AtsBaseModel):
     def __str__(self):
         position = f" - {self.position}" if self.position else ""
         return f"{self.company_name}{position} ({self.user.email})"
+
+
+# Backwards-compatible alias: some parts of the code/tests expect a model named
+# `Recruiter`. Keep the canonical name `RecruiterProfile` but expose `Recruiter`
+# to avoid ImportError when importing `Recruiter`.
+Recruiter = RecruiterProfile

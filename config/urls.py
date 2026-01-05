@@ -17,6 +17,8 @@ urlpatterns = [
     path("jobs/", include("ats.jobs.urls")),
 
     path("users/", include("ats.users.urls")),
+    path("applications/", include("ats.applications.urls")), 
+    path("submissions/", include("ats.submissions.urls")),
 
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
