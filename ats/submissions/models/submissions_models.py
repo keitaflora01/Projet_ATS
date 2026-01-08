@@ -44,7 +44,6 @@ class Submission(AtsBaseModel):
         default=SubmissionStatus.SUBMITTED
     )
     
-    
 
     class Meta:
         ordering = ["-created"]
