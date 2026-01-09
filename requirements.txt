@@ -6,12 +6,12 @@ django-environ==0.12.0
 django-extensions==4.1
 djangorestframework-simplejwt==5.5.1
 drf-spectacular==0.29.0
-importlib-metadata==8.0.0
-jaraco.collections==5.1.0
+importlib-metadata==8.7.1
+jaraco.collections==5.2.1
 pip-chill==1.0.3
-platformdirs==4.2.2
+platformdirs==4.5.1
 psycopg2-binary==2.9.11
 python-decouple==3.8
 redis==7.1.0
-tomli==2.0.1
+tomli==2.3.0
 whitenoise==6.11.0
