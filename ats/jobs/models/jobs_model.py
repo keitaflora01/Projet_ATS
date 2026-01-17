@@ -2,23 +2,29 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-import uuid
+
+from ats.core.models import AtsBaseModel
 
 
 class JobType(models.TextChoices):
     FULL_TIME = "full_time", _("Temps plein")
     PART_TIME = "part_time", _("Temps partiel")
-    CONTRACT = "contract", _("CDDC/Intérim")
-    INTERNSHIP = "internship", _("Stage")
+    REMOTE = "remote", _("Télétravail 100%")
+    HYBRID = "hybrid", _("Hybride")
+
+
+class ContractType(models.TextChoices):
+    CDI = "cdi", _("CDI")
+    CDD = "cdd", _("CDD")
+    ALTERNANCE = "alternance", _("Alternance")
+    STAGE = "stage", _("Stage")
     FREELANCE = "freelance", _("Freelance")
+    INTERIM = "interim", _("Intérim")
 
-
-from ats.core.models import AtsBaseModel
 
 class JobOffer(AtsBaseModel):
-    
     recruiter = models.ForeignKey(
-        "recruiters.RecruiterProfile",  # Référence à l'app recruiters
+        "recruiters.RecruiterProfile",
         on_delete=models.CASCADE,
         related_name="job_offers",
         verbose_name=_("recruteur")
@@ -26,17 +32,25 @@ class JobOffer(AtsBaseModel):
     
     title = models.CharField(_("titre"), max_length=255)
     description = models.TextField(_("description"))
-    requirements = models.TextField(_("exigences"), blank=True, null=True)
-    responsibilities = models.TextField(_("responsabilités"), blank=True, null=True)
     
-    location = models.CharField(_("localisation"), max_length=200, blank=True, null=True)
-    is_remote = models.BooleanField(_("télétravail"), default=False)
+    # Type de temps / rythme
     job_type = models.CharField(
-        _("type de contrat"),
+        _("type de poste"),
         max_length=20,
         choices=JobType.choices,
         default=JobType.FULL_TIME
     )
+    
+    # Type de contrat
+    contract_type = models.CharField(
+        _("type de contrat"),
+        max_length=20,
+        choices=ContractType.choices,
+        default=ContractType.CDI
+    )
+    
+    location = models.CharField(_("localisation"), max_length=200, blank=True, null=True)
+    is_remote = models.BooleanField(_("télétravail"), default=False)
     
     salary_min = models.DecimalField(
         _("salaire minimum"),
@@ -53,11 +67,13 @@ class JobOffer(AtsBaseModel):
         null=True
     )
     
-    published_at = models.DateTimeField(_("date de publication"), default=timezone.now)
+    required_skills = models.TextField(_("compétences requises"), blank=True, null=True)
+    requirements = models.TextField(_("exigences"), blank=True, null=True)
+    
     expires_at = models.DateTimeField(_("date d'expiration"), blank=True, null=True)
     is_active = models.BooleanField(_("active"), default=True)
     
-    
+    published_at = models.DateTimeField(_("date de publication"), default=timezone.now)
 
     class Meta:
         ordering = ["-published_at"]
@@ -72,3 +88,4 @@ class JobOffer(AtsBaseModel):
         if self.expires_at:
             return timezone.now() > self.expires_at
         return False
+    

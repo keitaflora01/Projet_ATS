@@ -1,7 +1,6 @@
 # ats/submissions/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
-
 from ats.agent.admin import AIAnalysisResultInline
 from ats.submissions.models.submissions_models import Submission, SubmissionStatus
 
@@ -17,12 +16,12 @@ class SubmissionAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "created", "job_offer__recruiter__company_name")
     search_fields = (
-        "candidate__user__email",
-        "candidate__user__full_name",
+        "candidate__email",
+        "candidate__full_name",
         "job_offer__title",
         "job_offer__recruiter__company_name",
     )
-    readonly_fields = ("created", "modified")
+    readonly_fields = ("created",)
     autocomplete_fields = ("candidate", "job_offer")
     date_hierarchy = "created"
     ordering = ("-created",)
@@ -36,22 +35,17 @@ class SubmissionAdmin(admin.ModelAdmin):
                 "status",
             )
         }),
-        ("Lettre de motivation", {
-            "fields": ("cover_letter",),
-            "classes": ("collapse",),
-        }),
         ("Dates", {
-            "fields": ("created", "modified"),
+            "fields": ("created",),
             "classes": ("collapse",),
         }),
     )
 
     def candidate_display(self, obj):
-        user = obj.candidate.user
-        name = user.full_name or user.email
-        return f"{name} ({user.email})"
+        name = obj.candidate.get_full_name() or obj.candidate.email
+        return f"{name} ({obj.candidate.email})"
     candidate_display.short_description = "Candidat"
-    candidate_display.admin_order_field = "candidate__user__email"
+    candidate_display.admin_order_field = "candidate__email"
 
     def job_offer_title(self, obj):
         return obj.job_offer.title
@@ -69,7 +63,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         color = colors.get(obj.status, "gray")
         text = obj.get_status_display()
         return format_html(
-            '<span style="background:{}; color:white; padding:4px 10px; border-radius:4px; font-size:0.9em;">{}</span>',
+            '<span style="background:{}; color:white; padding:4px 10px; border-radius:4px; font-size:0.9em; font-weight:bold;">{}</span>',
             color, text
         )
     status_badge.short_description = "Statut"
@@ -79,7 +73,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             analysis = obj.ai_analysis
             score = analysis.score
             color = "green" if score >= 80 else "orange" if score >= 60 else "red"
-            return format_html('<strong style="color:{};">{}%</strong>', color, score)
-        except Exception:
+            return format_html('<strong style="color:{};">{}/100</strong>', color, score)
+        except:
             return "-"
     ai_score_preview.short_description = "Score IA"

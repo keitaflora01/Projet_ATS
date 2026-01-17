@@ -1,10 +1,9 @@
 # ats/jobs/api/serializers/jobs_serializers.py
 from rest_framework import serializers
-from ats.jobs.models.jobs_model import JobOffer, JobType
-# from ats.recruiters.api.serializers.recruiter_serializers import RecruiterSerializer  # si tu en as un, sinon on peut simplifier
+from ats.jobs.models.jobs_model import JobOffer, JobType, ContractType
 
 class JobOfferSerializer(serializers.ModelSerializer):
-    recruiter = serializers.PrimaryKeyRelatedField(read_only=True)  # Le recruteur est défini automatiquement
+    recruiter = serializers.PrimaryKeyRelatedField(read_only=True)
     recruiter_company = serializers.CharField(source="recruiter.company_name", read_only=True)
     is_expired = serializers.BooleanField(read_only=True)
 
@@ -14,13 +13,14 @@ class JobOfferSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "description",
-            "requirements",
-            "responsibilities",
+            "job_type",
+            "contract_type",
             "location",
             "is_remote",
-            "job_type",
             "salary_min",
             "salary_max",
+            "required_skills",
+            "requirements",
             "expires_at",
             "is_active",
             "published_at",
@@ -31,9 +31,27 @@ class JobOfferSerializer(serializers.ModelSerializer):
         read_only_fields = ["published_at", "is_expired", "recruiter_company"]
 
     def validate(self, attrs):
-        # Validation personnalisée si besoin (ex: salary_min < salary_max)
+        # Validation salaire
         salary_min = attrs.get("salary_min")
         salary_max = attrs.get("salary_max")
         if salary_min and salary_max and salary_min > salary_max:
-            raise serializers.ValidationError({"salary_min": "Le salaire minimum ne peut pas être supérieur au maximum."})
+            raise serializers.ValidationError({
+                "salary_min": "Le salaire minimum ne peut pas être supérieur au maximum."
+            })
+
+        # Validation unique par recruteur + titre (empêche les doublons)
+        recruiter = self.context["request"].user.recruiter_profile
+        title = attrs.get("title")
+        if JobOffer.objects.filter(recruiter=recruiter, title=title).exists():
+            raise serializers.ValidationError({
+                "title": "Vous avez déjà créé une offre avec ce titre exact."
+            })
+
         return attrs
+
+    def create(self, validated_data):
+        # Le recruteur est défini automatiquement
+        recruiter = self.context["request"].user.recruiter_profile
+        validated_data["recruiter"] = recruiter
+        return super().create(validated_data)
+    

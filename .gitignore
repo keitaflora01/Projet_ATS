@@ -4,6 +4,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+GEMINI_API_KEY=AIzaSyDCRjzekI0K86GzhK2nkZ8f-u6VBMIk8FQ
+TAVILY_API_KEY=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
+
+
 # C extensions
 *.so
 

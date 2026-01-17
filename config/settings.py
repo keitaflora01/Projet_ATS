@@ -3,12 +3,16 @@ import ssl
 from pathlib import Path
 
 import environ
+from decouple import Config
+
+
+GEMINI_API_KEY = Config('GEMINI_API_KEY')
+TAVILY_API_KEY = Config('TAVILY_API_KEY')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 APPS_DIR = BASE_DIR / "ats"
 
 env = environ.Env(
-    # Valeurs par défaut
     DEBUG=(bool, False),
     DJANGO_SECRET_KEY=(str, "django-insecure-change-me-in-production!!!"),
     DJANGO_ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
@@ -61,6 +65,7 @@ LOCAL_APPS = [
     "ats.submissions",
     "ats.interviews",
     "ats.agent",
+    "ats.ProcessedApplication",
 ]
 
 REST_FRAMEWORK = {
@@ -75,7 +80,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Simple JWT settings: accept the standard "Bearer" Authorization header.
+
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
@@ -128,6 +133,18 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+# Configuration OpenAI
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'your-openai-api-key')
+
+# Configuration Google Search (optionnelle)
+GOOGLE_SEARCH_API_KEY = os.environ.get('GOOGLE_SEARCH_API_KEY', '')
+SEARCH_ENGINE_ID = os.environ.get('SEARCH_ENGINE_ID', '')
+
+# Configuration des modèles par défaut
+DEFAULT_LLM_MODEL = "gpt-4"
+DEFAULT_LLM_TEMPERATURE = 0.7
+DEFAULT_LLM_MAX_TOKENS = 2000
+
 # Database
 DATABASES = {
     "default": env.db("DATABASE_URL"),
@@ -149,7 +166,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = []
@@ -164,13 +180,7 @@ MEDIA_ROOT = APPS_DIR / "media"
 
 DEBUG = True
 
-# Auth
-# The project defines a Django user model in `ats.users.models.user_model`.
-# Use that custom user model so Django doesn't try to use the built-in
-# `auth.User` in parallel (which causes related_name clashes on groups
-# and permissions). The format is "<app_label>.<ModelName>" — the app
-# label here is `users` (AppConfig.name = "ats.users"), so set to
-# "users.User".
+
 AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -182,8 +192,9 @@ LOGIN_URL = "account_login"
 
 # django-allauth
 ACCOUNT_ALLOW_REGISTRATION = env("DJANGO_ACCOUNT_ALLOW_REGISTRATION")
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"  # ou "username" si tu veux seulement username
-ACCOUNT_EMAIL_REQUIRED = True
+
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_ADAPTER = "ats.users.adapters.AccountAdapter"
 ACCOUNT_FORMS = {"signup": "ats.users.forms.UserSignupForm"}
@@ -198,6 +209,9 @@ EMAIL_TIMEOUT = 5
 REDIS_URL = env("REDIS_URL")
 REDIS_SSL = REDIS_URL.startswith("rediss://")
 
+CELERY_BROKER_URL = 'redis://localhost:6379/0'          
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = REDIS_URL
 CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE} if REDIS_SSL else None
@@ -206,20 +220,10 @@ CELERY_REDIS_BACKEND_USE_SSL = CELERY_BROKER_USE_SSL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TASK_ALWAYS_EAGER = DEBUG  # En dev : exécution synchrone
+CELERY_TASK_ALWAYS_EAGER = DEBUG  
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-# Security (activé en prod via variables d'environnement)
-# if not DEBUG:
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
-#     SECURE_SSL_REDIRECT = True
-#     SECURE_HSTS_SECONDS = 31536000
-#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#     SECURE_HSTS_PRELOAD = True
-#     SECURE_CONTENT_TYPE_NOSNIFF = True
-#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SEcure_ssl_REDIRECT = True
 SESSION_COOKIE_SECURE = True

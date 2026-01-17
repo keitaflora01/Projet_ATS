@@ -48,6 +48,3 @@ if settings.DEBUG:
         import debug_toolbar
         urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
 
-# Tu pourras ajouter plus tard tes propres URLs ici, par exemple :
-# path("", include("ats.jobs.urls")),
-# path("accounts/", include("allauth.urls")),

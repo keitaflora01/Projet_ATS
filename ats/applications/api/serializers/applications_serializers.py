@@ -12,16 +12,20 @@ class ApplicationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "submission",
+            "years_experience",
+            "availability_date",
+            "desired_salary",
+            "portfolio_url",
             "cv_file",
             "cover_letter_file",
-            "portfolio_url",
             "other_documents",
+            "ia_score",
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "ia_score"]  # ia_score est calculé par l’IA
 
     def validate(self, attrs):
         submission = attrs.get("submission")
-        # Vérifier que la candidature appartient au candidat connecté
+        # Vérifie que la candidature appartient au candidat connecté
         if submission.candidate.user != self.context["request"].user:
             raise serializers.ValidationError("Vous ne pouvez pas candidater à cette offre.")
         return attrs
