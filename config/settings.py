@@ -65,7 +65,6 @@ LOCAL_APPS = [
     "ats.submissions",
     "ats.interviews",
     "ats.agent",
-    "ats.ProcessedApplication",
 ]
 
 REST_FRAMEWORK = {

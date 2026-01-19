@@ -5,10 +5,19 @@ from django.core.validators import FileExtensionValidator
 
 from ats.core.models import AtsBaseModel
 
+
+class ApplicationStatus(models.TextChoices):
+    PENDING = "pending", _("En attente")
+    SHORTLISTED = "shortlisted", _("Pré-sélectionné")
+    INTERVIEW = "interview", _("Entretien planifié")
+    REJECTED = "rejected", _("Rejeté")
+    ACCEPTED = "accepted", _("Accepté")
+
+
 class Application(AtsBaseModel):
     """
-    Dossier complet de candidature (tout ce que le candidat fournit pour postuler)
-    Lié 1-to-1 à une Submission (une candidature à une offre)
+    Dossier complet de candidature.
+    Les agents IA mettront à jour status, ia_score et resume automatiquement.
     """
     submission = models.OneToOneField(
         "submissions.Submission",
@@ -17,7 +26,7 @@ class Application(AtsBaseModel):
         verbose_name=_("candidature")
     )
     
-    # Champs du candidat pour cette candidature
+    # Champs remplis par le candidat
     years_experience = models.PositiveIntegerField(
         _("années d'expérience"),
         null=True,
@@ -41,12 +50,11 @@ class Application(AtsBaseModel):
     )
     
     portfolio_url = models.URLField(
-        _("lien portfolio (GitHub, site personnel, etc.)"),
+        _("lien portfolio"),
         blank=True,
         null=True
     )
     
-    # Fichiers uploadés
     cv_file = models.FileField(
         _("CV"),
         upload_to="applications/cv/",
@@ -63,18 +71,32 @@ class Application(AtsBaseModel):
         help_text=_("Optionnel")
     )
     
-    # Score IA (calculé automatiquement)
+    other_documents = models.TextField(
+        _("autres documents"),
+        blank=True,
+        null=True,
+        help_text=_("Liens supplémentaires séparés par virgule")
+    )
+    
+    # Champs mis à jour par les agents IA
+    status = models.CharField(
+        _("statut de la candidature"),
+        max_length=30,
+        choices=ApplicationStatus.choices,
+        default=ApplicationStatus.PENDING,
+        help_text=_("Mis à jour automatiquement par l'IA")
+    )
+    
     ia_score = models.FloatField(
         _("score IA"),
         default=0.0,
         help_text=_("Score de matching calculé par l'IA (0-100)")
     )
     
-    other_documents = models.TextField(
-        _("autres documents"),
+    resume = models.TextField(
+        _("résumé IA"),
         blank=True,
-        null=True,
-        help_text=_("Liens supplémentaires séparés par virgule")
+        help_text=_("Bref aperçu des compétences par rapport à l'offre (généré par l'IA)")
     )
 
     class Meta:

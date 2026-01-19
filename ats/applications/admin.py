@@ -1,8 +1,10 @@
-# ats/applications/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
-from ats.applications.models.applications_model import Application
-
+from ats.applications.models.applications_model import Application, ApplicationStatus
+"""The AI analysis inline belongs on the Submission admin (it links to Submission).
+Removing the inline here because `AIAnalysisResult` has no FK to `Application` and
+causes admin.E202 during system checks.
+"""
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
@@ -10,16 +12,22 @@ class ApplicationAdmin(admin.ModelAdmin):
         "submission_display",
         "candidate_name",
         "job_title",
+        "status_badge",
         "ia_score_display",
+        "resume_preview",
         "cv_link",
         "cover_letter_link",
-        "portfolio_link",
     )
-    list_filter = ("submission__created", "ia_score")
+    list_filter = (
+        "status",
+        "submission__created",
+        "ia_score",
+    )
     search_fields = (
         "submission__candidate__email",
         "submission__candidate__full_name",
         "submission__job_offer__title",
+        "resume",
     )
     readonly_fields = (
         "submission",
@@ -27,6 +35,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         "cv_preview",
         "cover_letter_preview",
         "portfolio_preview",
+        "resume",
     )
     autocomplete_fields = ("submission",)
 
@@ -50,8 +59,11 @@ class ApplicationAdmin(admin.ModelAdmin):
             )
         }),
         ("Analyse IA", {
-            "fields": ("ia_score",),
-            "classes": ("collapse",),
+            "fields": (
+                "ia_score",
+                "status",
+                "resume",
+            )
         }),
         ("Autres", {
             "fields": ("other_documents",),
@@ -59,8 +71,17 @@ class ApplicationAdmin(admin.ModelAdmin):
         }),
     )
 
+    def submission_display(self, obj):
+        if obj.submission:
+            user = obj.submission.candidate
+            candidate = user.get_full_name() or user.email
+            job = obj.submission.job_offer.title
+            return f"{candidate} → {job}"
+        return "-"
+    submission_display.short_description = "Candidature"
+
     def candidate_name(self, obj):
-        user = obj.submission.candidate  # ← Correction ici : c'est déjà un User
+        user = obj.submission.candidate
         return user.get_full_name() or user.email
     candidate_name.short_description = "Candidat"
 
@@ -68,20 +89,34 @@ class ApplicationAdmin(admin.ModelAdmin):
         return obj.submission.job_offer.title
     job_title.short_description = "Offre"
 
-    def submission_display(self, obj):
-        if obj.submission:
-            user = obj.submission.candidate  # ← Correction ici
-            candidate = user.get_full_name() or user.email
-            job = obj.submission.job_offer.title
-            return f"{candidate} → {job}"
-        return "-"
-    submission_display.short_description = "Candidature"
+    def status_badge(self, obj):
+        colors = {
+            ApplicationStatus.PENDING: "orange",
+            ApplicationStatus.SHORTLISTED: "blue",
+            ApplicationStatus.INTERVIEW: "purple",
+            ApplicationStatus.ACCEPTED: "green",
+            ApplicationStatus.REJECTED: "red",
+        }
+        color = colors.get(obj.status, "gray")
+        text = obj.get_status_display()
+        return format_html(
+            '<span style="background:{}; color:white; padding:6px 12px; border-radius:6px; font-weight:bold;">{}</span>',
+            color, text
+        )
+    status_badge.short_description = "Statut"
 
     def ia_score_display(self, obj):
         score = obj.ia_score or 0
         color = "green" if score >= 80 else "orange" if score >= 60 else "red"
         return format_html('<strong style="color:{};">{}/100</strong>', color, score)
     ia_score_display.short_description = "Score IA"
+
+    def resume_preview(self, obj):
+        if obj.resume:
+            preview = obj.resume[:100] + ("..." if len(obj.resume) > 100 else "")
+            return format_html('<div style="max-width:300px;">{}</div>', preview)
+        return "-"
+    resume_preview.short_description = "Résumé IA (aperçu)"
 
     def cv_link(self, obj):
         if obj.cv_file:
