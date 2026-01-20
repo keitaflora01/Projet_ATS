@@ -1,15 +1,11 @@
+def truncate_text(text: str, max_length: int = 10000) -> str:
+    """Tronque texte pour éviter overflow LLM."""
+    if len(text) > max_length:
+        return text[:max_length] + "... [tronqué]"
+    return text
 
-def build_prompt(template, **kwargs):
-    """Remplace les placeholders dans un prompt"""
-    try:
-        return template.format(**kwargs)
-    except KeyError as e:
-        print(f"[PROMPT BUILD ERROR] Clé manquante : {e}")
-        return template  
-
-def validate_json_structure(data, required_keys):
-    """Vérifie qu'un JSON a les clés obligatoires"""
-    missing = [k for k in required_keys if k not in data]
-    if missing:
-        raise ValueError(f"Clés manquantes dans JSON : {missing}")
-    return True
+def safe_get(obj, key, default=None):
+    """Récupération sûre d'une clé (dict ou None)."""
+    if isinstance(obj, dict):
+        return obj.get(key, default)
+    return default

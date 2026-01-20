@@ -1,3 +1,4 @@
+# ats/agent/services/common/llm_client.py
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
@@ -5,18 +6,21 @@ import google.generativeai as genai
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL = os.getenv("AI_MODEL_DEFAULT", "gemini-1.5-flash")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY manquante dans .env !")
 
-# Configuration globale
 genai.configure(api_key=GEMINI_API_KEY)
 
-def call_llm(prompt, model=MODEL, max_tokens=2000, temperature=0.3):
+DEFAULT_MODEL = os.getenv("AI_MODEL_DEFAULT", "gemini-1.5-flash")
+
+def call_llm(prompt: str, model: str = DEFAULT_MODEL, max_tokens: int = 2048, temperature: float = 0.35) -> str | None:
     """
-    Appel au modèle Gemini.
-    Retourne le contenu de la réponse.
+    Appel sécurisé à Gemini.
+    - Force JSON si demandé
+    - Limite tokens pour quota gratuit
+    - Gestion d'erreurs (quota, connexion)
     """
     try:
-        # Création du modèle
         model_instance = genai.GenerativeModel(
             model_name=model,
             generation_config={
@@ -26,10 +30,16 @@ def call_llm(prompt, model=MODEL, max_tokens=2000, temperature=0.3):
             }
         )
 
-        # Génération
         response = model_instance.generate_content(prompt)
-        return response.text.strip()
+        text = response.text.strip()
+
+        print(f"[LLM SUCCESS] {model} - {len(text)} tokens générés")
+        return text
 
     except Exception as e:
-        print(f"[GEMINI ERROR] {str(e)}")
+        str_e = str(e).lower()
+        if any(x in str_e for x in ["429", "quota", "rate limit", "resourceexhausted"]):
+            print("[LLM QUOTA] Limite gratuite Gemini atteinte (souvent ~500-1000/jour). Réessayez demain.")
+            return None
+        print(f"[LLM ERROR] {str(e)}")
         return None

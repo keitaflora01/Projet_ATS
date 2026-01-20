@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
 
-def extract_text_from_file(file_path):
+def extract_text_from_file(file_path: str) -> str:
     """
-    Extrait le texte brut d'un fichier (PDF, DOCX, ODT, TXT).
-    Retourne une chaîne ou vide en cas d'erreur.
+    Extrait texte brut d'un fichier (PDF, DOCX, ODT, TXT).
     """
     path = Path(file_path)
     ext = path.suffix.lower()
@@ -21,21 +19,19 @@ def extract_text_from_file(file_path):
             return "\n".join(para.text for para in doc.paragraphs if para.text.strip())
 
         elif ext == '.odt':
-            # ODT nécessite odfpy (pip install odfpy)
             from odf import text, teletype
             from odf.opendocument import load
             doc = load(path)
-            all_texts = teletype.extractText(doc)
-            return all_texts
+            return teletype.extractText(doc)
 
         elif ext == '.txt':
             with open(path, 'r', encoding='utf-8') as f:
                 return f.read()
 
         else:
-            print(f"[TEXT EXTRACTOR] Format non supporté : {ext}")
+            print(f"[EXTRACTOR] Format non supporté : {ext}")
             return ""
 
     except Exception as e:
-        print(f"[TEXT EXTRACTOR ERROR] {str(e)} - File: {file_path}")
+        print(f"[EXTRACTOR ERROR] {str(e)} - Fichier: {file_path}")
         return ""

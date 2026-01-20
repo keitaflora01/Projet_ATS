@@ -1,20 +1,24 @@
+# ats/agent/services/common/logic.py
 import json
 import re
 
-def parse_json_response(raw_text):
+def parse_json_response(raw_text: str) -> dict:
     """
-    Nettoie et parse une réponse JSON du LLM (gère les erreurs courantes)
+    Parse une réponse JSON du LLM, même si mal formatée (markdown, texte parasite).
     """
     try:
-        cleaned = re.sub(r'^```json\s*|\s*```$', '', raw_text.strip())
-        return json.loads(cleaned)
+        # Enlève markdown ```json ... ```
+        cleaned = re.sub(r'^```json\s*|\s*```$', '', raw_text.strip(), flags=re.IGNORECASE | re.DOTALL)
+        data = json.loads(cleaned)
+        print(f"[LOGIC] JSON parsé avec succès - clés: {list(data.keys())}")
+        return data
     except json.JSONDecodeError as e:
-        print(f"[JSON PARSE ERROR] {e} - Raw: {raw_text[:200]}...")
+        print(f"[LOGIC PARSE ERROR] {e} - Raw (premiers 200 chars): {raw_text[:200]}...")
         return {"error": "Invalid JSON", "raw": raw_text}
 
-def clean_text(text):
+def clean_text(text: str) -> str:
     """
-    Nettoyage basique de texte extrait (supprime espaces multiples, etc.)
+    Nettoyage texte extrait (supprime espaces multiples, caractères invisibles).
     """
     if not text:
         return ""

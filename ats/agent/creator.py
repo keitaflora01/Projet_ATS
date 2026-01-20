@@ -1,34 +1,31 @@
 from ats.agent.models.analysis_result import AIAnalysisResult
-from ats.agent.services.agent1_extraction.extractor import Agent1Extraction
-from ats.agent.services.agent2_matching.matcher import Agent2Matching
-from ats.agent.services.agent3_recommendation.recommender import Agent3Recommender
-
+from ats.agent.services.common.text_extractor import extract_text_from_file
+from ats.agent.services.gemini_service import analyze_with_gemini
 
 def run_full_ai_analysis(submission, cv_path, lm_path=None):
-    print(f"[CREATOR] Début analyse complète pour submission {submission.id}")
+    """
+    Orchestration complète : extraction + matching + recommandation avec Gemini.
+    """
+    print(f"[CREATOR] Début analyse pour submission {submission.id}")
 
-    agent1 = Agent1Extraction(cv_path, lm_path)
-    profile = agent1.run()
-    print("[Agent 1] Profil extrait")
+    cv_text = extract_text_from_file(cv_path) if cv_path else ""
+    lm_text = extract_text_from_file(lm_path) if lm_path else ""
+    job_desc = submission.job_offer.description or ""
 
-    agent2 = Agent2Matching(profile, submission.job_offer)
-    score, details = agent2.run()
-    print(f"[Agent 2] Score calculé : {score}")
+    analysis = analyze_with_gemini(cv_text, lm_text, job_desc)
 
-    agent3 = Agent3Recommender(profile, score, details, submission.job_offer)
-    recommendation, reason = agent3.run()
-    print(f"[Agent 3] Recommandation : {recommendation}")
-
-    analysis = AIAnalysisResult.objects.create(
+    # Sauvegarde
+    result = AIAnalysisResult.objects.create(
         submission=submission,
-        score=score,
-        extracted_skills=profile.get("skills", []),
-        matching_skills=details.get("matching", []),
-        missing_skills=details.get("missing", []),
-        summary=reason,
-        recommendation=recommendation,
-        raw_response={"profile": profile, "details": details}
+        score=analysis.get("score", 0),
+        extracted_skills=analysis.get("extracted_skills", []),
+        matching_skills=analysis.get("matching_skills", []),
+        missing_skills=analysis.get("missing_skills", []),
+        summary=analysis.get("summary", ""),
+        recommendation=analysis.get("recommendation", "wait"),
+        confidence=analysis.get("confidence", 0.5),
+        raw_response=analysis
     )
 
-    print(f"[CREATOR] Analyse terminée - Score: {score}")
-    return analysis
+    print(f"[CREATOR] Analyse terminée - Score: {result.score}")
+    return result

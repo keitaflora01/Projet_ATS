@@ -1,5 +1,5 @@
-from ...common.tools import extract_text_from_file, call_llm  # tes outils existants
-from ...common.logic import parse_json_response  # si tu as une fonction de parsing
+from ...common.tools import extract_text_from_file, call_llm  
+from ...common.logic import parse_json_response  
 from .prompts import EXTRACTION_PROMPT
 
 
@@ -23,7 +23,6 @@ class Agent1Extraction:
 
         raw_response = call_llm(prompt, model="grok-beta")  # ou ton LLM préféré
 
-        # Parsing sécurisé (utilise ta fonction logic.py si elle existe)
         try:
             self.profile = parse_json_response(raw_response)
         except Exception as e:
