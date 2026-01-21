@@ -1,11 +1,25 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+
+from ats.candidates.models.candidates_model import Candidate
+from ats.recruiters.models.recruiters_model import RecruiterProfile
 from .models.user_model import User, UserRole
 from .models.service_model import Service
 from .models.testimonial_model import Testimonial
 from .models.policy_model import Policy
-# from .models.contact_model import ContactInfo, ContactMessage
 from .models.statistic_model import Statistic
+
+class CandidateInline(admin.StackedInline):
+    model = Candidate
+    can_delete = False
+    verbose_name_plural = "Profil candidat"
+    readonly_fields = ("created", "updated")
+
+class RecruiterProfileInline(admin.StackedInline):
+    model = RecruiterProfile
+    can_delete = False
+    verbose_name_plural = "Profil recruteur"
+    readonly_fields = ("created", "updated")
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):

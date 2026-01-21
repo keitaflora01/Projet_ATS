@@ -6,8 +6,7 @@ import environ
 from decouple import Config
 
 
-GEMINI_API_KEY = Config('GEMINI_API_KEY')
-TAVILY_API_KEY = Config('TAVILY_API_KEY')
+DEEPSEEKER_API_KEY = Config('DEEPSEEKER_API_KEY')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 APPS_DIR = BASE_DIR / "ats"
@@ -54,6 +53,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
@@ -99,6 +99,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -208,8 +209,8 @@ EMAIL_TIMEOUT = 5
 REDIS_URL = env("REDIS_URL")
 REDIS_SSL = REDIS_URL.startswith("rediss://")
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'          
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6378/0'          
+CELERY_RESULT_BACKEND = 'redis://localhost:6378/0'
 
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = REDIS_URL
@@ -239,3 +240,8 @@ LOGGING = {
     },
     "root": {"handlers": ["console"], "level": "INFO"},
 }
+
+# CORS (Cross-Origin Resource Sharing)
+# In development we allow all origins. For production, replace with
+# a restricted list using CORS_ALLOWED_ORIGINS or env-driven settings.
+CORS_ALLOW_ALL_ORIGINS = True

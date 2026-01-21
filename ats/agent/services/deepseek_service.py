@@ -4,6 +4,7 @@ import json
 from django.conf import settings
 from openai import OpenAI
 
+
 def analyze_with_deepseek(cv_text: str, cover_text: str = "", job_description: str = "") -> dict:
     api_key = os.environ.get("DEEPSEEK_API_KEY")
     if not api_key:

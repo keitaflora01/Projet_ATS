@@ -8,11 +8,9 @@ from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
 )
-from ats.users.views import DashboardView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("ui/", DashboardView.as_view(), name="ui"),
     path("users/", include("ats.users.urls")),  
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/",SpectacularSwaggerView.as_view(url_name="schema"),name="swagger-ui"),
@@ -21,6 +19,8 @@ urlpatterns = [
     path("users/", include("ats.users.urls")),
     path("applications/", include("ats.applications.urls")), 
     path("submissions/", include("ats.submissions.urls")),
+    path("candidates/", include("ats.candidates.urls")),
+    path("recruiters/", include("ats.recruiters.urls")),
 
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

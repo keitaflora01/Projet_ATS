@@ -1,4 +1,3 @@
-# ats/applications/models/applications_model.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import FileExtensionValidator
@@ -26,7 +25,6 @@ class Application(AtsBaseModel):
         verbose_name=_("candidature")
     )
     
-    # Champs remplis par le candidat
     years_experience = models.PositiveIntegerField(
         _("années d'expérience"),
         null=True,
@@ -78,7 +76,6 @@ class Application(AtsBaseModel):
         help_text=_("Liens supplémentaires séparés par virgule")
     )
     
-    # Champs mis à jour par les agents IA
     status = models.CharField(
         _("statut de la candidature"),
         max_length=30,
