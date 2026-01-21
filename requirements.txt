@@ -39,9 +39,9 @@ crispy-bootstrap5
 crispy-tailwind
 
 # Google AI / Agent (ESSENTIAL ONLY)
-google-generativeai
-google-api-core
-google-auth
+openai
+pypdf
+python-docx
 
 # Optional (keep ONLY if used)
 django-filter

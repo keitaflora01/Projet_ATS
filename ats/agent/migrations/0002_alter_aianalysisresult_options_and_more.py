@@ -15,113 +15,33 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='aianalysisresult',
-            options={'ordering': ['-processed_at'], 'verbose_name': "résultat d'analyse IA", 'verbose_name_plural': "résultats d'analyse IA"},
+        migrations.DeleteModel(
+            name='AIAnalysisResult',
         ),
-        migrations.RemoveField(
-            model_name='aianalysisresult',
-            name='extracted_skills',
-        ),
-        migrations.RemoveField(
-            model_name='aianalysisresult',
-            name='matching_skills',
-        ),
-        migrations.RemoveField(
-            model_name='aianalysisresult',
-            name='missing_skills',
-        ),
-        migrations.RemoveField(
-            model_name='aianalysisresult',
-            name='raw_response',
-        ),
-        migrations.RemoveField(
-            model_name='aianalysisresult',
-            name='score',
-        ),
-        migrations.RemoveField(
-            model_name='aianalysisresult',
-            name='summary',
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='activate_date',
-            field=models.DateTimeField(blank=True, help_text='keep empty for an immediate activation', null=True),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='ai_model_version',
-            field=models.CharField(blank=True, help_text="Ex: 'gpt-4o-mini-2024-11', 'grok-beta'", max_length=50, verbose_name='version du modèle IA'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='confidence',
-            field=models.FloatField(default=0.0, help_text="Confiance de l'IA sur l'analyse (0.0 à 1.0)", verbose_name='niveau de confiance global'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='created',
-            field=django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='created'),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='deactivate_date',
-            field=models.DateTimeField(blank=True, help_text='keep empty for indefinite activation', null=True),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='extracted_profile',
-            field=models.JSONField(default=dict, help_text='Données structurées : compétences, expériences, diplômes, etc.', verbose_name='profil extrait'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='matching_details',
-            field=models.JSONField(default=dict, help_text='Compétences correspondantes, manquantes, forces/faiblesses', verbose_name='détails du matching'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='matching_score',
-            field=models.PositiveSmallIntegerField(default=0, help_text="Score de 0 à 100 calculé par l'IA", verbose_name='score de matching'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='modified',
-            field=django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='processing_duration',
-            field=models.DurationField(blank=True, help_text='Temps total de calcul des 3 agents', null=True, verbose_name='durée du traitement'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='recommendation',
-            field=models.CharField(choices=[('interview_high', 'Entretien prioritaire'), ('interview_medium', 'Entretien possible'), ('interview_low', 'Entretien optionnel'), ('wait', "À attendre / plus d'infos"), ('reject', 'Rejet recommandé')], default='wait', help_text='Action suggérée au recruteur', max_length=30, verbose_name='recommandation finale'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='recommendation_reason',
-            field=models.TextField(blank=True, help_text='Explication claire et concise de la recommandation', verbose_name='justification détaillée'),
-        ),
-        migrations.AddField(
-            model_name='aianalysisresult',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Inactive'), (1, 'Active')], default=1, verbose_name='status'),
-        ),
-        migrations.AlterField(
-            model_name='aianalysisresult',
-            name='id',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
-        ),
-        migrations.AlterField(
-            model_name='aianalysisresult',
-            name='processed_at',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='date de traitement IA'),
-        ),
-        migrations.AlterField(
-            model_name='aianalysisresult',
-            name='submission',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='ai_analysis', to='submissions.submission', verbose_name='candidature analysée'),
+        migrations.CreateModel(
+            name='AIAnalysisResult',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True, verbose_name='created')),
+                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True, verbose_name='modified')),
+                ('status', models.IntegerField(choices=[(0, 'Inactive'), (1, 'Active')], default=1, verbose_name='status')),
+                ('activate_date', models.DateTimeField(blank=True, help_text='keep empty for an immediate activation', null=True)),
+                ('deactivate_date', models.DateTimeField(blank=True, help_text='keep empty for indefinite activation', null=True)),
+                ('extracted_profile', models.JSONField(default=dict, help_text='Données structurées : compétences, expériences, diplômes, etc.', verbose_name='profil extrait')),
+                ('matching_score', models.PositiveSmallIntegerField(default=0, help_text="Score de 0 à 100 calculé par l'IA", verbose_name='score de matching')),
+                ('matching_details', models.JSONField(default=dict, help_text='Compétences correspondantes, manquantes, forces/faiblesses', verbose_name='détails du matching')),
+                ('recommendation', models.CharField(choices=[('interview_high', 'Entretien prioritaire'), ('interview_medium', 'Entretien possible'), ('interview_low', 'Entretien optionnel'), ('wait', "À attendre / plus d'infos"), ('reject', 'Rejet recommandé')], default='wait', help_text='Action suggérée au recruteur', max_length=30, verbose_name='recommandation finale')),
+                ('recommendation_reason', models.TextField(blank=True, help_text='Explication claire et concise de la recommandation', verbose_name='justification détaillée')),
+                ('processed_at', models.DateTimeField(auto_now_add=True, verbose_name='date de traitement IA')),
+                ('processing_duration', models.DurationField(blank=True, help_text='Temps total de calcul des 3 agents', null=True, verbose_name='durée du traitement')),
+                ('ai_model_version', models.CharField(blank=True, help_text="Ex: 'gpt-4o-mini-2024-11', 'grok-beta'", max_length=50, verbose_name='version du modèle IA')),
+                ('confidence', models.FloatField(default=0.0, help_text="Confiance de l'IA sur l'analyse (0.0 à 1.0)", verbose_name='niveau de confiance global')),
+                ('submission', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='ai_analysis', to='submissions.submission', verbose_name='candidature analysée')),
+            ],
+            options={
+                'verbose_name': "résultat d'analyse IA",
+                'verbose_name_plural': "résultats d'analyse IA",
+                'ordering': ['-processed_at'],
+            },
         ),
     ]
