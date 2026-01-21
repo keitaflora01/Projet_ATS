@@ -19,10 +19,13 @@ class IsOwnerRecruiter(permissions.BasePermission):
 
 class JobOfferListCreateView(generics.ListCreateAPIView):
     serializer_class = JobOfferSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny] # Allow viewing jobs publicly
 
     def get_queryset(self):
-        print(f"👀 Récupération des offres pour l'utilisateur : {self.request.user.email} (rôle: {self.request.user.role})")
+        if self.request.user.is_authenticated:
+            print(f"👀 Récupération des offres pour l'utilisateur : {self.request.user.email}")
+        else:
+            print("👀 Récupération des offres pour un visiteur anonyme")
         if getattr(self.request.user, "role", None) == "recruiter":
             qs = JobOffer.objects.filter(recruiter__user=self.request.user)
             print(f"   → Recruteur : {qs.count()} offre(s) trouvée(s)")

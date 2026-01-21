@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATS - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen font-sans">
+    <!-- Navbar -->
+    <nav class="gradient-bg text-white shadow-lg sticky top-0 z-50">
+      <div
+        class="container mx-auto px-6 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-2xl font-bold tracking-wide">
+          ATS <span class="text-indigo-200">Pro</span>
+        </h1>
+        <div id="nav-links" class="flex items-center space-x-6">
+          <!-- Dynamic Content -->
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+      <div id="app-content">
+        <!-- Content Injected Here -->
+      </div>
+    </main>
+
+    <!-- Modal (Generic) -->
+    <div
+      id="modal-container"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 transform transition-all p-6 relative"
+      >
+        <button
+          onclick="closeModal()"
+          class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <div id="modal-content"></div>
+      </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+      // State Management
+      let tokens = JSON.parse(localStorage.getItem("tokens")) || null;
+      let userData = JSON.parse(localStorage.getItem("userData")) || null;
+
+      // --- AUTH ---
+
+      function updateNav() {
+        const nav = document.getElementById("nav-links");
+        if (tokens) {
+          nav.innerHTML = `
+                    <span class="font-medium mr-4">Bonjour, ${userData?.email || "User"}</span>
+                    <button onclick="router('jobs')" class="hover:text-indigo-200 transition">Offres</button>
+                    ${userData?.role === "recruiter" ? '<button onclick="router(\'create-job\')" class="hover:text-indigo-200 transition">Créer Offre</button>' : ""}
+                    <button onclick="logout()" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow">Déconnexion</button>
+                `;
+        } else {
+          nav.innerHTML = `
+                    <button onclick="router('login')" class="hover:text-indigo-200 transition">Connexion</button>
+                    <button onclick="router('register')" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-bold hover:bg-gray-100 transition shadow">Inscription</button>
+                `;
+        }
+      }
+
+      async function login(event) {
+        event.preventDefault();
+        const email = event.target.email.value;
+        const password = event.target.password.value;
+
+        try {
+          const res = await fetch("/users/api/login/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          if (!res.ok) throw new Error("Erreur de connexion");
+
+          const data = await res.json();
+          tokens = data;
+          localStorage.setItem("tokens", JSON.stringify(tokens));
+
+          // Decode token payload simply for demo (or assume backend sends role separately,
+          // but here we'll just store email/role if available or fetch profile later)
+          // For simplicity, let's assume login returns role or we decode JWT:
+          const payload = JSON.parse(atob(data.access.split(".")[1]));
+          userData = { email: email, role: payload.role || "candidate" }; // Assuming custom claim 'role' or we default
+          localStorage.setItem("userData", JSON.stringify(userData));
+
+          updateNav();
+          router("jobs");
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+
+      async function register(event) {
+        event.preventDefault();
+        const email = event.target.email.value;
+        const password = event.target.password.value;
+        const password2 = event.target.password2.value;
+        const role = event.target.role.value;
+        
+        if (password !== password2) {
+            alert("Les mots de passe ne correspondent pas !");
+            return;
+        }
+
+        try {
+          const res = await fetch("/users/api/register/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, password2, role }),
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(JSON.stringify(errorData));
+          }
+
+          alert("Compte créé ! Veuillez vous connecter.");
+          router("login");
+        } catch (err) {
+          alert("Erreur: " + err.message);
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem("tokens");
+        localStorage.removeItem("userData");
+        tokens = null;
+        userData = null;
+        updateNav();
+        router("login");
+      }
+
+      // --- VIEWS ---
+
+      const views = {
+        login: `
+                <div class="max-w-md mx-auto glass-panel p-8 rounded-xl shadow-xl mt-10">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Connexion</h2>
+                    <form onsubmit="login(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                            <input type="email" name="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Mot de passe</label>
+                            <input type="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <button type="submit" class="w-full gradient-bg text-white font-bold py-3 rounded-lg hover:opacity-90 transition">Se Connecter</button>
+                    </form>
+                </div>
+            `,
+        register: `
+                 <div class="max-w-md mx-auto glass-panel p-8 rounded-xl shadow-xl mt-10">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Inscription</h2>
+                    <form onsubmit="register(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                            <input type="email" name="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                         <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Mot de passe</label>
+                            <input type="password" name="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                         <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Confirmer le mot de passe</label>
+                            <input type="password" name="password2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Rôle</label>
+                            <select name="role" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="candidate">Candidat</option>
+                                <option value="recruiter">Recruteur</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full gradient-bg text-white font-bold py-3 rounded-lg hover:opacity-90 transition">S'inscrire</button>
+                    </form>
+                </div>
+            `,
+        "create-job": `
+                 <div class="max-w-2xl mx-auto glass-panel p-8 rounded-xl shadow-xl mt-4">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">Nouvelle Offre</h2>
+                    <form onsubmit="createJob(event)" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold mb-1">Titre</label>
+                                <input type="text" name="title" class="w-full border p-2 rounded" required>
+                            </div>
+                             <div>
+                                <label class="block text-sm font-bold mb-1">Localisation</label>
+                                <input type="text" name="location" class="w-full border p-2 rounded" required>
+                            </div>
+                        </div>
+                        <div>
+                             <label class="block text-sm font-bold mb-1">Description</label>
+                             <textarea name="description" rows="5" class="w-full border p-2 rounded" required></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                             <div>
+                                <label class="block text-sm font-bold mb-1">Salaire Min</label>
+                                <input type="number" name="salary_min" class="w-full border p-2 rounded" value="0">
+                            </div>
+                             <div>
+                                <label class="block text-sm font-bold mb-1">Salaire Max</label>
+                                <input type="number" name="salary_max" class="w-full border p-2 rounded" value="0">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 rounded hover:bg-green-700 transition">Publier l'Offre</button>
+                    </form>
+                </div>
+            `,
+      };
+
+      async function createJob(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const data = Object.fromEntries(formData.entries());
+        data.job_type = "full_time"; // Defaults
+        data.contract_type = "cdi";
+
+        try {
+          const res = await fetch("/jobs/api/offers/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${tokens.access}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (res.ok) {
+            alert("Job Created!");
+            router("jobs");
+          } else {
+            alert("Erreur création job");
+          }
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      async function loadJobs() {
+        const container = document.getElementById("app-content");
+        try {
+          const res = await fetch("/jobs/api/offers/");
+          if (res.status === 401) {
+            container.innerHTML = `<p class="text-center text-gray-600 mt-10">Veuillez vous <a href="#" onclick="router('login')" class="text-indigo-600 font-bold">connecter</a> pour voir les offres.</p>`;
+            return;
+          }
+          const jobs = await res.json();
+
+          let html = `<h2 class="text-3xl font-bold text-gray-800 mb-6">Offres Disponibles</h2>
+                            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+
+          if (jobs.length === 0)
+            html += `<p class="text-gray-500 col-span-3 text-center py-10">Aucune offre pour le moment.</p>`;
+
+          jobs.forEach((job) => {
+            html += `
+                        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-6 border border-gray-100 flex flex-col">
+                            <h3 class="text-xl font-bold text-indigo-700 mb-2">${job.title}</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex items-center">
+                                <span class="mr-2">📍 ${job.location}</span> • <span class="ml-2">💰 ${job.salary_min / 1000}k - ${job.salary_max / 1000}k</span>
+                            </p>
+                            <p class="text-gray-600 mb-6 flex-grow overflow-hidden h-24 text-ellipsis">${job.description}</p>
+                            <button onclick="openApplyModal('${job.id}', '${job.title}')" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg hover:bg-indigo-700 transition">
+                                Postuler 🚀
+                            </button>
+                        </div>
+                    `;
+          });
+          html += `</div>`;
+          container.innerHTML = html;
+        } catch (e) {
+          container.innerHTML = `<p class="text-red-500">Erreur chargement jobs: ${e.message}</p>`;
+        }
+      }
+
+      function openApplyModal(jobId, jobTitle) {
+        if (!tokens) {
+          alert("Connectez-vous pour postuler !");
+          router("login");
+          return;
+        }
+        const content = document.getElementById("modal-content");
+        content.innerHTML = `
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Postuler à : ${jobTitle}</h3>
+                <form onsubmit="submitApplication(event, '${jobId}')" class="space-y-4">
+                    <div class="p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
+                        <label class="block text-gray-700 font-bold mb-2">Votre CV (PDF)</label>
+                        <input type="file" name="cv_file" accept=".pdf,.docx" class="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-indigo-50 file:text-indigo-700
+                          hover:file:bg-indigo-100
+                        " required>
+                    </div>
+                    <button type="submit" id="submit-btn" class="w-full gradient-bg text-white font-bold py-3 rounded-lg hover:opacity-90 transition">
+                        Envoyer ma candidature
+                    </button>
+                </form>
+            `;
+        document.getElementById("modal-container").classList.remove("hidden");
+      }
+
+      function closeModal() {
+        document.getElementById("modal-container").classList.add("hidden");
+      }
+
+      async function submitApplication(event, jobId) {
+        event.preventDefault();
+        const btn = document.getElementById("submit-btn");
+        const originalText = btn.innerText;
+        btn.innerText = "Envoi en cours...";
+        btn.disabled = true;
+
+        const formData = new FormData(event.target);
+        formData.append("job_offer_id", jobId);
+
+        try {
+          const res = await fetch("/submissions/api/submissions/", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${tokens.access}`,
+            },
+            body: formData,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            closeModal();
+            // Show generic success or enhance modal
+            alert(
+              `✅ Candidature envoyée !\nID: ${data.submission_id}\nMise en file d'attente pour analyse IA.`,
+            );
+          } else {
+            const err = await res.json();
+            alert("Erreur: " + JSON.stringify(err));
+            btn.innerText = originalText;
+            btn.disabled = false;
+          }
+        } catch (e) {
+          alert("Erreur réseau: " + e.message);
+          btn.innerText = originalText;
+          btn.disabled = false;
+        }
+      }
+
+      function router(route) {
+        const app = document.getElementById("app-content");
+        if (views[route]) {
+          app.innerHTML = views[route];
+        } else if (route === "jobs") {
+          loadJobs();
+        } else {
+          app.innerHTML = views["login"];
+        }
+        updateNav();
+      }
+
+      // Init
+      updateNav();
+      if (tokens) {
+        router("jobs");
+      } else {
+        router("login");
+      }
+    </script>
+  </body>
+</html>
