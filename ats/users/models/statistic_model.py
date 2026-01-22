@@ -1,4 +1,3 @@
-# ats/users/models/statistic_model.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import uuid

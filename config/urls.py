@@ -1,4 +1,3 @@
-# config/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -16,7 +15,6 @@ urlpatterns = [
     path("api/docs/",SpectacularSwaggerView.as_view(url_name="schema"),name="swagger-ui"),
     path("jobs/", include("ats.jobs.urls")),
 
-    path("users/", include("ats.users.urls")),
     path("applications/", include("ats.applications.urls")), 
     path("submissions/", include("ats.submissions.urls")),
     path("candidates/", include("ats.candidates.urls")),
