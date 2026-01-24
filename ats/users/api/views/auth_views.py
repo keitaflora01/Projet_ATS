@@ -74,7 +74,7 @@ class LoginView(APIView):
                     "refresh": {"type": "string"},
                     "access": {"type": "string"},
                     "role": {"type": "string"},
-                    "user": {"type": "object"} # On pourrait détailler le user schema ici
+                    "user": {"type": "object"} 
                 }
             },
             401: "Identifiants invalides",

@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import ssl
 from pathlib import Path
@@ -82,6 +83,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  
 }
 
 SPECTACULAR_SETTINGS = {

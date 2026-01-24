@@ -26,7 +26,6 @@ class RecruiterSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "user", "created", "modified", "email", "full_name"]
 
     def update(self, instance, validated_data):
-        # Permet de modifier les champs recruteur
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

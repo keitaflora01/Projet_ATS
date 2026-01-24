@@ -4,6 +4,7 @@ from ats.users.models.user_model import User
 class UserSerializer(serializers.ModelSerializer):
     profile_photo_url = serializers.SerializerMethodField()  
 
+
     class Meta:
         model = User
         fields = (
