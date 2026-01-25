@@ -1,4 +1,3 @@
-# ats/jobs/api/views/jobs_views.py
 import logging
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -9,7 +8,6 @@ from ats.jobs.models.jobs_model import JobOffer
 
 logger = logging.getLogger(__name__)
 
-# Permission personnalisée : seul le recruteur propriétaire peut modifier/supprimer
 class IsOwnerRecruiter(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         print(f"🔐 Vérification permission : user={request.user.email if request.user.is_authenticated else 'Anonyme'}, "

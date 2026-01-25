@@ -1,4 +1,3 @@
-# ats/jobs/tests.py
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from ats.users.models.user_model import User

@@ -74,8 +74,6 @@ class TestimonialAdmin(admin.ModelAdmin):
     )
     list_filter = ("is_approved", "rating", "created")
     search_fields = ("user__email", "user__full_name", "message")
-    # Keep only fields that are safe to edit inline. 'is_approved' can be edited
-    # in the change form to avoid admin.E122 checks related to list_editable.
     list_editable = ("order",)
     ordering = ("-created",)
     actions = ["approve_selected", "reject_selected"]

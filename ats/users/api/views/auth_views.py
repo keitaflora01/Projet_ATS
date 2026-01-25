@@ -25,11 +25,11 @@ def validate_password_strength(password: str) -> tuple[bool, str]:
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = UserRegisterSerializer
+    serializer_class = UserRegisterSerializer  
 
     @extend_schema(
         summary="Enregistrer un nouvel utilisateur",
-        description="Crée un utilisateur (Candidat ou Recruteur). Pour un recruteur, 'company_name' est requis.",
+        description="Crée un utilisateur (Candidat ou Recruteur). Les champs supplémentaires dépendent du rôle.",
         request=UserRegisterSerializer,
         responses={201: UserSerializer, 400: "Erreur de validation"}
     )
@@ -55,9 +55,8 @@ class RegisterView(APIView):
                 "message": "Utilisateur créé avec succès. Vous pouvez maintenant vous connecter."
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            logger.error("Erreur lors de la création de l'utilisateur %s : %s", request.data.get("email"), str(e), exc_info=True)
+            logger.error("Erreur lors de la création : %s", str(e), exc_info=True)
             return Response({"detail": "Erreur interne lors de la création."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
