@@ -96,6 +96,13 @@ def process_application_ai(self, application_id):
             analysis_result.save()
             created = True
 
+        # Sync back to Application model for Admin display
+        app.ia_score = analysis_result.matching_score
+        app.resume = analysis_result.recommendation_reason[:500]  # Respect max_length if any, or just truncated
+        # Map recommendation to status if needed, or just keep it separate
+        app.save(update_fields=['ia_score', 'resume'])
+
+
         print(f"[CELERY SUCCESS] Analyse terminée - Score: {analysis_result.matching_score} | "
               f"Durée: {duration:.2f}s | Créé: {created}")
 
