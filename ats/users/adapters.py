@@ -9,7 +9,6 @@ such integrations. For now it provides simple no-op placeholders.
 def placeholder_adapter(*args, **kwargs):
     """Return None; implement adapter logic here if needed."""
     return None
-# jhhhhhhhhhhhh
 
 class AccountAdapter:
     """Minimal AccountAdapter placeholder for django-allauth.

@@ -41,6 +41,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "jazzmin",
     "django.contrib.admin",
     "django.forms",
 ]
@@ -248,3 +249,5 @@ LOGGING = {
 # In development we allow all origins. For production, replace with
 # a restricted list using CORS_ALLOWED_ORIGINS or env-driven settings.
 CORS_ALLOW_ALL_ORIGINS = True
+
+from config.jazzmin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
