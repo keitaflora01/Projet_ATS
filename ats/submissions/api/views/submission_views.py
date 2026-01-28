@@ -4,58 +4,20 @@ from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
 from ats.submissions.models.submissions_models import Submission
+from ats.submissions.api.serializers.submissions_serializers import SubmissionCreateSerializer, SubmissionSerializer
 from ats.agent.tasks import process_application_ai  
 
-class SubmissionCreateView(generics.CreateAPIView):
-    serializer_class = SubmissionCreateSerializer
+class SubmissionListCreateView(generics.ListCreateAPIView):
+    """
+    - GET : Lister les candidatures (filtré par rôle)
+    - POST : Créer une nouvelle candidature + lancer analyse IA
+    """
     permission_classes = [permissions.IsAuthenticated]
 
-    @extend_schema(summary="Postuler à une offre - créer candidature complète")
-    def post(self, request):
-        print("\n" + "="*50)
-        print("🆕 CANDIDAT POSTULE À UNE OFFRE (API complète)")
-        print(f"Utilisateur : {request.user.email} (rôle: {request.user.role})")
-        print("Données reçues :", request.data)
-        print("Fichiers reçus :", list(request.FILES.keys()))
-
-        if request.user.role != "candidate":
-            print("❌ Refus : rôle non candidat")
-            return Response({"detail": "Seuls les candidats peuvent postuler."}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = self.get_serializer(data=request.data, context={"request": request})
-        if serializer.is_valid():
-            result = serializer.save()
-            submission = result["submission"]
-            application = result["application"]
-            
-            print(f"✅ Candidature créée !")
-            print(f"   → Submission ID: {submission.id}")
-            print(f"   → Application ID: {application.id}")
-            print(f"   → Offre: {submission.job_offer.title}")
-            print(f"   → CV uploadé: {application.cv_file.name}")
-
-            process_application_ai.delay(application.id)
-            print(f"[CELERY] Tâche d'analyse IA lancée pour application {application.id}")
-
-            return Response({
-                "message": "Postulation réussie ! Votre candidature a été enregistrée.",
-                "submission_id": str(submission.id),
-                "application_id": str(application.id),
-                "job_offer": submission.job_offer.title,
-                "status": submission.get_status_display(),
-                "cv_url": application.cv_file.url if application.cv_file else None,
-                "cover_letter_url": application.cover_letter_file.url if application.cover_letter_file else None
-            }, status=status.HTTP_201_CREATED)
-        else:
-            print("❌ Erreurs :", serializer.errors)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-class SubmissionListView(generics.ListAPIView):
-    """
-    Lister toutes les candidatures (recruteur voit celles de ses offres, admin voit tout)
-    """
-    serializer_class = SubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return SubmissionCreateSerializer
+        return SubmissionSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -63,12 +25,29 @@ class SubmissionListView(generics.ListAPIView):
             return Submission.objects.all()
         elif user.role == "recruiter":
             return Submission.objects.filter(job_offer__recruiter__user=user)
-        else:
+        else:  # candidate
             return Submission.objects.filter(candidate=user)
 
-    @extend_schema(summary="Lister les candidatures (filtrées par rôle)")
+    def perform_create(self, serializer):
+        result = serializer.save()
+        submission = result["submission"]
+        application = result["application"]
+        
+        print(f"[DEBUG] Candidature créée - Submission ID: {submission.id}, Application ID: {application.id}")
+        
+        # Lancement IA
+        process_application_ai.delay(application.id)
+        print(f"[CELERY] Tâche d'analyse IA lancée pour application {application.id}")
+
+    @extend_schema(summary="Lister ou créer une candidature")
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+    @extend_schema(summary="Lister ou créer une candidature")
+    def post(self, request, *args, **kwargs):
+        if request.user.role != "candidate":
+            return Response({"detail": "Seuls les candidats peuvent postuler."}, status=403)
+        return super().post(request, *args, **kwargs)
 
 
 class SubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):

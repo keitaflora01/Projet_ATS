@@ -76,8 +76,17 @@ class JobOfferListCreateView(generics.ListCreateAPIView):
 
 class JobOfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = JobOfferSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerRecruiter]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerRecruiter]
     lookup_field = "id"
+
+    def get_permissions(self):
+        """
+        GET : tout le monde (public)
+        PUT/PATCH/DELETE : seulement le propriétaire recruteur
+        """
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsOwnerRecruiter()]
 
     def get_queryset(self):
         return JobOffer.objects.all()
