@@ -30,14 +30,48 @@ def process_application_ai(self, application_id):
                     # Fallback logic could go here, but for now we proceed cautiously
                 
                 if name.endswith('.pdf'):
-                    import pypdf
-                    reader = pypdf.PdfReader(file_obj)
                     text = ""
-                    for page in reader.pages:
+                    import io
+                    
+                    # Read content to memory to ensure we have a standard BytesIO object
+                    # This avoids issues with Django's FieldFile/File wrappers
+                    try:
+                        file_obj.seek(0)
+                        content = file_obj.read()
+                        stream = io.BytesIO(content)
+                    except Exception as e:
+                        print(f"⚠️ Erreur lecture fichier PDF vers mémoire: {e}")
+                        return ""
+
+                    try:
+                        # Strategy 1: pdfminer.six (More robust)
+                        from pdfminer.high_level import extract_text as pdfminer_extract
+                        text = pdfminer_extract(stream)
+                    except ImportError:
+                        print("⚠️ pdfminer.six not installed, trying pypdf...")
+                        pass
+                    except Exception as e:
+                        print(f"⚠️ pdfminer error: {e}")
+
+                    if not text.strip():
+                        # Strategy 2: pypdf (Fallback)
                         try:
-                            text += (page.extract_text() or "") + "\n"
+                            import pypdf
+                            stream.seek(0) # Reset cursor
+                            reader = pypdf.PdfReader(stream)
+                            for i, page in enumerate(reader.pages):
+                                try:
+                                    page_text = page.extract_text()
+                                    if page_text:
+                                        text += page_text + "\n"
+                                except Exception as e:
+                                    print(f"⚠️ Erreur extraction page PDF {i} (pypdf): {e}")
                         except Exception as e:
-                            print(f"⚠️ Erreur extraction page PDF: {e}")
+                             print(f"⚠️ pypdf error: {e}")
+                    
+                    if not text.strip():
+                         print("⚠️ Aucun texte extrait du PDF après multiples tentatives.")
+                    
                     return text
                 
                 elif name.endswith('.docx'):
@@ -57,6 +91,9 @@ def process_application_ai(self, application_id):
 
         # Extraction CV
         cv_text = extract_text_from_file(app.cv_file)
+        print(f"[DEBUG] Extracted CV Text Length: {len(cv_text)}")
+        print(f"[DEBUG] CV Text Preview: {cv_text[:200]}")
+        
         if not cv_text:
              print("⚠️ CV vide ou illisible après extraction.")
         
@@ -64,16 +101,22 @@ def process_application_ai(self, application_id):
         lm_text = extract_text_from_file(app.cover_letter_file)
 
         job_desc = app.submission.job_offer.description or ""
+        print(f"[DEBUG] Job Offer: {app.submission.job_offer.title}")
 
         # CALL DEEPSEEK SERVICE
         analysis = analyze_with_deepseek(cv_text, lm_text, job_desc)
+        
+        print(f"[DEBUG] AI Raw Response: {analysis}")
 
         duration = time.time() - start_time
-
+        
+        score = analysis.get("score", 0)
+        
+        # update Analysis Result
         AIAnalysisResult.objects.update_or_create(
             submission=app.submission,
             defaults={
-                "matching_score": analysis.get("score", 0),
+                "matching_score": score,
                 "extracted_profile": {
                     "skills": analysis.get("extracted_skills", [])
                 },
@@ -83,15 +126,58 @@ def process_application_ai(self, application_id):
                     "full_summary": analysis.get("summary", "")
                 },
                 "recommendation": analysis.get("recommendation", "wait"),
-                "recommendation_reason": analysis.get("summary", "")[:500],  # Truncate if needed
+                "recommendation_reason": analysis.get("summary", "")[:500],
                 "confidence": analysis.get("confidence", 0.5),
                 "processed_at": timezone.now(),
-                "processing_duration": timedelta(seconds=duration), # Fix type
+                "processing_duration": timedelta(seconds=duration),
                 "ai_model_version": "deepseek-v3",
             }
         )
+        
+        # Update Application Score
+        app.ia_score = score
+        app.resume = analysis.get("summary", "")[:5000]
+        
+        # CHECK PASS PERCENTAGE
+        job_offer = app.submission.job_offer
+        pass_percentage = job_offer.pass_percentage
+        
+        print(f"[CELERY] Score: {score} / Pass: {pass_percentage}")
 
-        print(f"[CELERY SUCCESS] Score: {analysis.get('score')} | Durée: {duration:.2f}s")
+        if score >= pass_percentage:
+            from ats.applications.models.applications_model import ApplicationStatus
+            from ats.interviews.models.interview_model import Interview, InterviewStatus
+            from ats.agent.services.deepseek_service import generate_interview_questions
+            from ats.utility.email_service import send_interview_invitation
+            
+            # 1. Update Status
+            app.status = ApplicationStatus.INTERVIEW
+            app.save()
+            print(f"[CELERY] Candidat PASSED. Status -> INTERVIEW")
+            
+            # 2. Generate Interview Questions
+            questions = generate_interview_questions(job_desc, cv_text)
+            
+            # 3. Create Interview Object
+            Interview.objects.create(
+                application=app,
+                job_offer=job_offer,
+                questions=questions,
+                status=InterviewStatus.SCHEDULED
+            )
+            print(f"[CELERY] Interview created with {len(questions)} questions.")
+            
+            # 4. Send Email
+            send_interview_invitation(app)
+            
+        else:
+            # Optionally update status to REJECTED or leave as PENDING/REVIEW
+            # For now we leave logic to recruiter or set to REVIEW
+            pass
+            
+            app.save()
+
+        print(f"[CELERY SUCCESS] Score: {score} | Durée: {duration:.2f}s")
 
     except Exception as e:
         print(f"[CELERY ERROR] {str(e)}\n{traceback.format_exc()}")

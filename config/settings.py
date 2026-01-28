@@ -41,6 +41,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "jazzmin",
     "django.contrib.admin",
     "django.forms",
 ]
@@ -200,9 +201,17 @@ ACCOUNT_FORMS = {"signup": "ats.users.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "ats.users.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_FORMS = {"signup": "ats.users.forms.UserSocialSignupForm"}
 
-# Email (par défaut en console pour dev)
+# Email
 EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND")
 EMAIL_TIMEOUT = 5
+
+# SMTP Configuration (if using smtp backend)
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
 # Celery
 REDIS_URL = env("REDIS_URL")
@@ -219,7 +228,7 @@ CELERY_REDIS_BACKEND_USE_SSL = CELERY_BROKER_USE_SSL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TASK_ALWAYS_EAGER = DEBUG  
+CELERY_TASK_ALWAYS_EAGER = False  
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
@@ -238,4 +247,35 @@ LOGGING = {
         "console": {"class": "logging.StreamHandler"},
     },
     "root": {"handlers": ["console"], "level": "INFO"},
+}
+
+# Jazzmin Settings
+JAZZMIN_SETTINGS = {
+    "site_title": "ATS Admin",
+    "site_header": "ATS Administration",
+    "welcome_sign": "Welcome to the ATS Admin Panel",
+    "search_model": "auth.User",
+    "user_avatar": None,
+    "topmenu_links": [
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"app": "jobs"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "jobs.JobOffer": "fas fa-briefcase",
+        "applications.Application": "fas fa-file-alt",
+        "interviews.Interview": "fas fa-calendar-check",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": False,
+    "custom_css": None,
+    "custom_js": None,
+    "show_ui_builder": False,
 }

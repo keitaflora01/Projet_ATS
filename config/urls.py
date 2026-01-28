@@ -21,7 +21,7 @@ urlpatterns = [
     path("users/", include("ats.users.urls")),
     path("applications/", include("ats.applications.urls")), 
     path("submissions/", include("ats.submissions.urls")),
-
+    path("interviews/api/", include("ats.interviews.api.urls")), # New Endpoint
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
 

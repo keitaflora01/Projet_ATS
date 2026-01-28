@@ -4,6 +4,9 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 
+from ats.agent.tasks import process_application_ai
+from django.db import transaction
+
 # 
 class SubmissionCreateView(generics.CreateAPIView):
     serializer_class = SubmissionCreateSerializer
@@ -23,15 +26,18 @@ class SubmissionCreateView(generics.CreateAPIView):
 
         serializer = self.get_serializer(data=request.data, context={"request": request})
         if serializer.is_valid():
-            result = serializer.save()
-            submission = result["submission"]
-            application = result["application"]
-            
+            with transaction.atomic():
+                result = serializer.save()
+                submission = result["submission"]
+                application = result["application"]
+                
+                # Trigger Celery Task safely on commit
+                transaction.on_commit(lambda: process_application_ai.delay(application.id))
+
             print(f"✅ Candidature créée !")
             print(f"   → Submission ID: {submission.id}")
             print(f"   → Application ID: {application.id}")
-            print(f"   → Offre: {submission.job_offer.title}")
-            print(f"   → CV uploadé: {application.cv_file.name}")
+            print(f"   → Celery Task: process_application_ai triggered")
 
             return Response({
                 "message": "Postulation réussie ! Votre candidature a été enregistrée.",

@@ -2,57 +2,54 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from ats.interviews.models.interviews_model import Interview, InterviewStatus
+from ats.interviews.models.interview_model import Interview, InterviewStatus
 
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
     list_display = (
         "submission_display",
-        "interview_type",
         "scheduled_at_formatted",
         "status_badge",
-        "location_or_link_preview",
     )
     list_filter = (
         "status",
-        "interview_type",
         "scheduled_at",
     )
     search_fields = (
-        "submission__candidate__user__email",
-        "submission__candidate__user__full_name",
-        "submission__job_offer__title",
-        "location_or_link",
+        "application__submission__candidate__custom_user__email",
+        "application__submission__candidate__custom_user__first_name",
+        "job_offer__title",
     )
-    readonly_fields = ("created", "modified")
-    autocomplete_fields = ("submission",)
+    readonly_fields = ("created", "modified", "questions_preview")
+    autocomplete_fields = ("application", "job_offer")
     date_hierarchy = "scheduled_at"
     ordering = ("-scheduled_at",)
 
     fieldsets = (
         ("Entretien", {
             "fields": (
-                "submission",
-                "interview_type",
+                "application",
+                "job_offer",
                 "scheduled_at",
                 "status",
             )
         }),
-        ("Lieu / Lien", {"fields": ("location_or_link",)}),
-        ("Notes", {"fields": ("notes",), "classes": ("collapse",)}),
+        ("Questions & Notes", {"fields": ("questions_preview", "questions")}),
         ("Dates", {"fields": ("created", "modified"), "classes": ("collapse",)}),
     )
 
     def submission_display(self, obj):
-        if obj.submission:
-            candidate_name = obj.submission.candidate.user.full_name or obj.submission.candidate.user.email
-            job_title = obj.submission.job_offer.title
+        if obj.application and obj.application.submission:
+            candidate_name = obj.application.submission.candidate.get_full_name() or obj.application.submission.candidate.email
+            job_title = obj.job_offer.title
             return f"{candidate_name} → {job_title}"
         return "-"
     submission_display.short_description = "Candidature"
 
     def scheduled_at_formatted(self, obj):
+        if not obj.scheduled_at:
+            return "-"
         local_time = timezone.localtime(obj.scheduled_at)
         date_str = local_time.strftime("%d/%m/%Y %H:%M")
         if obj.scheduled_at < timezone.now():
@@ -65,7 +62,7 @@ class InterviewAdmin(admin.ModelAdmin):
             InterviewStatus.SCHEDULED: "blue",
             InterviewStatus.COMPLETED: "green",
             InterviewStatus.CANCELLED: "red",
-            InterviewStatus.NO_SHOW: "orange",
+            InterviewStatus.PENDING_FEEDBACK: "orange",
         }
         color = colors.get(obj.status, "gray")
         text = obj.get_status_display()
@@ -75,11 +72,8 @@ class InterviewAdmin(admin.ModelAdmin):
         )
     status_badge.short_description = "Statut"
 
-    def location_or_link_preview(self, obj):
-        if not obj.location_or_link:
-            return "-"
-        value = obj.location_or_link.strip()
-        if value.startswith(("http://", "https://")):
-            return format_html('<a href="{}" target="_blank">🔗 Ouvrir le lien</a>', value)
-        return value
-    location_or_link_preview.short_description = "Lieu / Lien"
+    def questions_preview(self, obj):
+        if obj.questions:
+            return format_html("<pre>{}</pre>", str(obj.questions))
+        return "-"
+    questions_preview.short_description = "Questions (Aperçu)"
