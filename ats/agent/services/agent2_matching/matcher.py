@@ -4,7 +4,7 @@ from ...common.logic import parse_json_response
 from .prompts import MATCHING_PROMPT
 
 
-class Agent2Matching:# tes outils existants
+class Agent2Matching:
     """
     Agent 2 : Matching du profil candidat avec l'offre d'emploi.
     Entrée : profil extrait (dict) + objet JobOffer

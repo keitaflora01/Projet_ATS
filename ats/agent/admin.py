@@ -1,41 +1,52 @@
-from django.utils.html import format_html
-from ats.agent.models.analysis_result import AIAnalysisResult
 from django.contrib import admin
+from django.utils.html import format_html
+
+from ats.agent.models.analysis_result import AIAnalysisResult
+
 
 class AIAnalysisResultInline(admin.TabularInline):
-    """Inline to show the AIAnalysisResult on the Submission admin page."""
     model = AIAnalysisResult
     extra = 0
     can_delete = False
     readonly_fields = (
         "matching_score",
         "recommendation",
-        "processed_at",
         "confidence",
+        "processed_at",
+        "raw_preview",
     )
     fields = (
         "matching_score",
         "recommendation",
-        "recommendation_reason",
-        "processed_at",
         "confidence",
+        "processed_at",
+        "raw_preview",
     )
     show_change_link = True
+
+    def raw_preview(self, obj):
+        if obj.raw_ai_response:
+            return str(obj.raw_ai_response)[:150] + "..." if len(str(obj.raw_ai_response)) > 150 else str(obj.raw_ai_response)
+        return "-"
+    raw_preview.short_description = "Réponse IA brute (aperçu)"
 
 
 @admin.register(AIAnalysisResult)
 class AIAnalysisResultAdmin(admin.ModelAdmin):
     list_display = (
         "submission_display",
-        "matching_score_display",
+        "score_colored",
         "recommendation_badge",
         "confidence_display",
         "processed_at",
+        "raw_preview",
     )
     list_filter = ("recommendation", "processed_at")
     search_fields = (
         "submission__candidate__email",
         "submission__job_offer__title",
+        "recommendation_reason",
+        "raw_text_response",
     )
     readonly_fields = (
         "submission",
@@ -48,17 +59,23 @@ class AIAnalysisResultAdmin(admin.ModelAdmin):
         "ai_model_version",
         "processed_at",
         "processing_duration",
+        "raw_ai_response",
+        "raw_text_response",
     )
     date_hierarchy = "processed_at"
     ordering = ("-processed_at",)
 
     fieldsets = (
-        ("Candidature liée", {"fields": ("submission",)}),
-        ("Résultat global", {
+        ("Candidature", {"fields": ("submission",)}),
+        ("Résultat principal", {
             "fields": ("matching_score", "confidence", "recommendation", "recommendation_reason"),
         }),
-        ("Détails techniques", {
+        ("Détails IA", {
             "fields": ("extracted_profile", "matching_details"),
+            "classes": ("collapse",),
+        }),
+        ("Réponse brute (stockage complet)", {
+            "fields": ("raw_ai_response", "raw_text_response"),
             "classes": ("collapse",),
         }),
         ("Métadonnées", {
@@ -67,6 +84,13 @@ class AIAnalysisResultAdmin(admin.ModelAdmin):
         }),
     )
 
+    # AFFICHAGE SCORE COLORÉ (ici, pas dans le modèle)
+    def score_colored(self, obj):
+        score = obj.matching_score
+        color = "green" if score >= 80 else "orange" if score >= 60 else "red"
+        return format_html('<strong style="color:{};">{} / 100</strong>', color, score)
+    score_colored.short_description = "Score"  # ← Maintenant ça marche !
+
     def submission_display(self, obj):
         if obj.submission:
             candidate = obj.submission.candidate.get_full_name() or obj.submission.candidate.email
@@ -74,12 +98,6 @@ class AIAnalysisResultAdmin(admin.ModelAdmin):
             return f"{candidate} → {job}"
         return "-"
     submission_display.short_description = "Candidature"
-
-    def matching_score_display(self, obj):
-        score = obj.matching_score
-        color = "green" if score >= 80 else "orange" if score >= 60 else "red"
-        return format_html('<strong style="color:{};">{} / 100</strong>', color, score)
-    matching_score_display.short_description = "Score"
 
     def recommendation_badge(self, obj):
         colors = {
@@ -102,4 +120,9 @@ class AIAnalysisResultAdmin(admin.ModelAdmin):
         color = "green" if conf >= 80 else "orange" if conf >= 60 else "red"
         return format_html('<strong style="color:{};">{:.0f}%</strong>', color, conf)
     confidence_display.short_description = "Confiance"
-    
+
+    def raw_preview(self, obj):
+        if obj.raw_ai_response:
+            return str(obj.raw_ai_response)[:150] + "..." if len(str(obj.raw_ai_response)) > 150 else str(obj.raw_ai_response)
+        return "-"
+    raw_preview.short_description = "Réponse IA brute (aperçu)"

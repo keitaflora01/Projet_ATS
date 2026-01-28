@@ -1,4 +1,3 @@
-# ats/agent/models/analysis_result.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -16,7 +15,7 @@ class RecommendationChoice(models.TextChoices):
 class AIAnalysisResult(AtsBaseModel):
     """
     Résultat complet de l'analyse IA d'une candidature.
-    Stocke les sorties des agents d'extraction, matching et recommandation.
+    Stocke les sorties des agents + réponse brute de l'IA.
     """
     submission = models.OneToOneField(
         "submissions.Submission",
@@ -25,26 +24,26 @@ class AIAnalysisResult(AtsBaseModel):
         verbose_name=_("candidature analysée")
     )
 
-    # Agent 1 - Extraction du profil (CV + LM)
     extracted_profile = models.JSONField(
         _("profil extrait"),
         default=dict,
-        help_text=_("Données structurées : compétences, expériences, diplômes, etc.")
+        blank=True,
+        help_text=_("Compétences, expériences, diplômes, etc.")
     )
 
-    # Agent 2 - Matching avec l'offre
     matching_score = models.PositiveSmallIntegerField(
         _("score de matching"),
         default=0,
-        help_text=_("Score de 0 à 100 calculé par l'IA")
+        help_text=_("Score final de 0 à 100")
     )
+
     matching_details = models.JSONField(
-        _("détails du matching"),
+        _("détails matching"),
         default=dict,
+        blank=True,
         help_text=_("Compétences correspondantes, manquantes, forces/faiblesses")
     )
 
-    # Agent 3 - Recommandation & aide à la décision
     recommendation = models.CharField(
         _("recommandation finale"),
         max_length=30,
@@ -52,43 +51,67 @@ class AIAnalysisResult(AtsBaseModel):
         default=RecommendationChoice.WAIT,
         help_text=_("Action suggérée au recruteur")
     )
+
     recommendation_reason = models.TextField(
         _("justification détaillée"),
         blank=True,
-        help_text=_("Explication claire et concise de la recommandation")
+        help_text=_("Explication claire et concise")
     )
 
-    # Métadonnées du traitement
-    processed_at = models.DateTimeField(
-        _("date de traitement IA"),
-        auto_now_add=True
+    confidence = models.FloatField(
+        _("niveau de confiance"),
+        default=0.0,
+        help_text=_("Confiance globale de l'IA (0.0 à 1.0)")
     )
+
+    # NOUVEAUX CHAMPS POUR STOCKER LA RÉPONSE BRUTE DE L'IA (comme tu le veux)
+    raw_ai_response = models.JSONField(
+        _("réponse brute JSON de l'IA"),
+        default=dict,
+        blank=True,
+        null=True,
+        help_text=_("Réponse complète renvoyée par DeepSeek/Gemini - conservée pour transparence et debug")
+    )
+
+    raw_text_response = models.TextField(
+        _("réponse texte brute"),
+        blank=True,
+        null=True,
+        help_text=_("Version texte complète avant parsing - utile pour recherche")
+    )
+
+    # Métadonnées
+    processed_at = models.DateTimeField(_("date de traitement"), auto_now_add=True)
     processing_duration = models.DurationField(
         _("durée du traitement"),
         null=True,
         blank=True,
-        help_text=_("Temps total de calcul des 3 agents")
+        help_text=_("Temps total des agents IA")
     )
     ai_model_version = models.CharField(
         _("version du modèle IA"),
         max_length=50,
         blank=True,
-        help_text=_("Ex: 'gpt-4o-mini-2024-11', 'grok-beta'")
-    )
-    confidence = models.FloatField(
-        _("niveau de confiance global"),
-        default=0.0,
-        help_text=_("Confiance de l'IA sur l'analyse (0.0 à 1.0)")
+        help_text=_("Ex: 'deepseek-v3'")
     )
 
     class Meta:
         verbose_name = _("résultat d'analyse IA")
         verbose_name_plural = _("résultats d'analyse IA")
         ordering = ["-processed_at"]
+        indexes = [models.Index(fields=['submission', 'matching_score'])]
 
     def __str__(self):
-        return f"IA - {self.submission} - Score: {self.matching_score}%"
+        return f"Analyse IA - {self.submission} - Score: {self.matching_score}%"
 
     @property
     def recommendation_display(self):
         return self.get_recommendation_display()
+
+    # @property
+    # def score_display(self):
+    #     color = "green" if self.matching_score >= 80 else "orange" if self.matching_score >= 60 else "red"
+    #     return f"<strong style='color:{color};'>{self.matching_score}/100</strong>"
+    # score_display.short_description = "Score"
+    # score_display.allow_tags = True
+

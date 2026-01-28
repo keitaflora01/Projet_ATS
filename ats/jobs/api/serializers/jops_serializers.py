@@ -1,4 +1,3 @@
-# ats/jobs/api/serializers/jobs_serializers.py
 from rest_framework import serializers
 from ats.jobs.models.jobs_model import JobOffer, JobType, ContractType
 
@@ -30,8 +29,8 @@ class JobOfferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["published_at", "is_expired", "recruiter_company"]
 
+
     def validate(self, attrs):
-        # Validation salaire
         salary_min = attrs.get("salary_min")
         salary_max = attrs.get("salary_max")
         if salary_min and salary_max and salary_min > salary_max:
@@ -39,9 +38,13 @@ class JobOfferSerializer(serializers.ModelSerializer):
                 "salary_min": "Le salaire minimum ne peut pas être supérieur au maximum."
             })
 
-        # Validation unique par recruteur + titre (empêche les doublons)
         recruiter = self.context["request"].user.recruiter_profile
         title = attrs.get("title")
+        
+        if self.instance:  
+            if self.instance.title == title:
+                return attrs  
+        
         if JobOffer.objects.filter(recruiter=recruiter, title=title).exists():
             raise serializers.ValidationError({
                 "title": "Vous avez déjà créé une offre avec ce titre exact."
@@ -50,7 +53,6 @@ class JobOfferSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        # Le recruteur est défini automatiquement
         recruiter = self.context["request"].user.recruiter_profile
         validated_data["recruiter"] = recruiter
         return super().create(validated_data)

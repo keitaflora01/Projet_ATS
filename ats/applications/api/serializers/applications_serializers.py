@@ -1,4 +1,3 @@
-# ats/applications/api/serializers/applications_serializers.py
 from rest_framework import serializers
 
 from ats.applications.models.applications_model import Application
@@ -21,7 +20,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "other_documents",
             "ia_score",
         ]
-        read_only_fields = ["id", "ia_score"]  # ia_score est calculé par l’IA
+        read_only_fields = ["id", "ia_score"]  
 
     def validate(self, attrs):
         submission = attrs.get("submission")

@@ -1,32 +1,55 @@
-# ats/users/models/testimonial_model.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-import uuid
-
 
 from ats.core.models import AtsBaseModel
+from ats.users.models.user_model import User
 
 class Testimonial(AtsBaseModel):
+    """
+    Avis / Témoignage laissé par un utilisateur authentifié.
+    - Lié directement à User (pas besoin de author_name séparé)
+    - Note de 1 à 5 étoiles
+    - Modération via is_approved
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="testimonials",
+        verbose_name=_("utilisateur")
+    )
     
-    author_name = models.CharField(_("nom de l'auteur"), max_length=200)
-    author_role = models.CharField(_("poste/fonction"), max_length=150, blank=True, null=True)
-    company = models.CharField(_("entreprise"), max_length=200, blank=True, null=True)
-    content = models.TextField(_("témoignage"))
+    message = models.TextField(_("avis / témoignage"))
+    
     rating = models.PositiveSmallIntegerField(
         _("note"),
+        choices=[(i, f"{i} étoile{'s' if i > 1 else ''}") for i in range(1, 6)],
         default=5,
-        choices=[(i, f"{i} étoile{'s' if i > 1 else ''}") for i in range(1, 6)]
+        help_text=_("Note de 1 à 5")
     )
-    photo_url = models.URLField(_("photo de l'auteur"), blank=True, null=True)
-    is_approved = models.BooleanField(_("approuvé"), default=False)
-    order = models.PositiveIntegerField(_("ordre d'affichage"), default=0)
     
+    is_approved = models.BooleanField(
+        _("approuvé / visible"),
+        default=False,
+        help_text=_("Validé par un admin pour être affiché publiquement")
+    )
     
+    order = models.PositiveIntegerField(
+        _("ordre d'affichage"),
+        default=0,
+        help_text=_("Pour trier les témoignages sur la page d'accueil")
+    )
 
     class Meta:
         ordering = ["order", "-created"]
-        verbose_name = _("témoignage")
-        verbose_name_plural = _("témoignages")
+        verbose_name = _("avis")
+        verbose_name_plural = _("avis")
+        indexes = [
+            models.Index(fields=['is_approved', 'order']),
+        ]
 
     def __str__(self):
-        return f"{self.author_name} ({self.company or 'Particulier'}) - {self.rating}/5"
+        return f"{self.user.get_full_name()} - {self.rating}/5"
+
+    @property
+    def short_message(self):
+        return self.message[:100] + ("..." if len(self.message) > 100 else "")

@@ -48,6 +48,13 @@ class User(AtsBaseModel, AbstractBaseUser, PermissionsMixin):
     
     date_joined = models.DateTimeField(default=timezone.now)
 
+    profile_photo = models.ImageField(
+        _("photo de profil"),
+        upload_to="profiles/",
+        blank=True,
+        null=True,
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = "email"
@@ -65,3 +72,10 @@ class User(AtsBaseModel, AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.full_name.split()[0] if self.full_name else self.email
+    
+    @property
+    def photo_url(self):
+        """Retourne l'URL de la photo ou None (pas d'image par défaut)"""
+        if self.profile_photo and self.profile_photo.url:
+            return self.profile_photo.url
+        return None

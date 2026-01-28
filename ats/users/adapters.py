@@ -10,7 +10,6 @@ def placeholder_adapter(*args, **kwargs):
     """Return None; implement adapter logic here if needed."""
     return None
 
-
 class AccountAdapter:
     """Minimal AccountAdapter placeholder for django-allauth.
 

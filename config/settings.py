@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import ssl
 from pathlib import Path
@@ -6,8 +7,7 @@ import environ
 from decouple import Config
 
 
-GEMINI_API_KEY = Config('GEMINI_API_KEY')
-TAVILY_API_KEY = Config('TAVILY_API_KEY')
+DEEPSEEKER_API_KEY = Config('DEEPSEEKER_API_KEY')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 APPS_DIR = BASE_DIR / "ats"
@@ -55,6 +55,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "corsheaders",
     "rest_framework",
     "rest_framework.authtoken",
     "drf_spectacular",
@@ -83,6 +84,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  
 }
 
 SPECTACULAR_SETTINGS = {
@@ -100,6 +103,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -214,15 +218,15 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
-if not EMAIL_HOST_User:
+if not EMAIL_HOST_USER:
     print("⚠️ Warning: EMAIL_HOST_USER not set. Emails might fail.")
 
 # Celery
 REDIS_URL = env("REDIS_URL")
 REDIS_SSL = REDIS_URL.startswith("rediss://")
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'          
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6378/0'          
+CELERY_RESULT_BACKEND = 'redis://localhost:6378/0'
 
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BROKER_URL = REDIS_URL
@@ -253,33 +257,9 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 
-# Jazzmin Settings
-JAZZMIN_SETTINGS = {
-    "site_title": "ATS Admin",
-    "site_header": "ATS Administration",
-    "welcome_sign": "Welcome to the ATS Admin Panel",
-    "search_model": "auth.User",
-    "user_avatar": None,
-    "topmenu_links": [
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"app": "jobs"},
-    ],
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "hide_apps": [],
-    "hide_models": [],
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "jobs.JobOffer": "fas fa-briefcase",
-        "applications.Application": "fas fa-file-alt",
-        "interviews.Interview": "fas fa-calendar-check",
-    },
-    "default_icon_parents": "fas fa-chevron-circle-right",
-    "default_icon_children": "fas fa-circle",
-    "related_modal_active": False,
-    "custom_css": None,
-    "custom_js": None,
-    "show_ui_builder": False,
-}
+# CORS (Cross-Origin Resource Sharing)
+# In development we allow all origins. For production, replace with
+# a restricted list using CORS_ALLOWED_ORIGINS or env-driven settings.
+CORS_ALLOW_ALL_ORIGINS = True
+
+from config.jazzmin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS

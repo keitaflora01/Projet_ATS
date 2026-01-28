@@ -1,13 +1,33 @@
 from rest_framework import serializers
+from ats.jobs.api.serializers.jops_serializers import JobOfferSerializer
 from ats.submissions.models.submissions_models import Submission
 from ats.applications.models.applications_model import Application
-from ats.applications.api.serializers.applications_serializers import ApplicationSerializer  # pour les fichiers
+from ats.applications.api.serializers.applications_serializers import ApplicationSerializer
+from ats.users.api.serializers.user_serializers import UserSerializer  # pour les fichiers
 
+class SubmissionSerializer(serializers.ModelSerializer):
+    """
+    Serializer complet pour lister / détailler une candidature
+    """
+    candidate = UserSerializer(read_only=True)
+    job_offer = JobOfferSerializer(read_only=True)
+    application = ApplicationSerializer(read_only=True)  # Inclut CV, LM, score IA, resume, statut
+
+    class Meta:
+        model = Submission
+        fields = [
+            "id",
+            "candidate",
+            "job_offer",
+            "status",
+            "application",
+            "created",
+        ]
+        read_only_fields = ["id", "created"]
 class SubmissionCreateSerializer(serializers.Serializer):
     job_offer_id = serializers.UUIDField(required=True)
     cover_letter_text = serializers.CharField(required=False, allow_blank=True)
     
-    # Champs de l'Application (dossier candidat)
     years_experience = serializers.IntegerField(required=False, allow_null=True)
     availability_date = serializers.DateField(required=False, allow_null=True)
     desired_salary = serializers.DecimalField(required=False, allow_null=True, max_digits=12, decimal_places=2)
@@ -29,20 +49,16 @@ class SubmissionCreateSerializer(serializers.Serializer):
         from ats.jobs.models.jobs_model import JobOffer
         job_offer = JobOffer.objects.get(id=job_offer_id)
 
-        # Le candidat est l'utilisateur connecté
         candidate = self.context["request"].user
 
-        # Vérifier que c'est un candidat
         if candidate.role != "candidate":
             raise serializers.ValidationError("Seuls les candidats peuvent postuler.")
 
-        # Créer la Submission (lien candidat-offre)
         submission = Submission.objects.create(
             candidate=candidate,
             job_offer=job_offer
         )
 
-        # Créer l'Application (dossier complet)
         application_data = {
             "submission": submission,
             "years_experience": validated_data.pop("years_experience", None),
