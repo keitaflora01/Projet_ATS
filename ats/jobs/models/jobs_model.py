@@ -29,7 +29,11 @@ class JobOffer(AtsBaseModel):
         related_name="job_offers",
         verbose_name=_("recruteur")
     )
-    
+    pass_percentage = models.PositiveIntegerField(
+        _("pourcentage de réussite"),
+        default=70,
+        help_text=_("Score minimum (0-100) pour passer à l'étape suivante")
+    )
     title = models.CharField(_("titre"), max_length=255)
     description = models.TextField(_("description"))
     
@@ -67,11 +71,6 @@ class JobOffer(AtsBaseModel):
         null=True
     )
     
-    pass_percentage = models.PositiveIntegerField(
-        _("pourcentage de réussite"),
-        default=70,
-        help_text=_("Score minimum (0-100) pour passer à l'étape suivante")
-    )
     
     required_skills = models.TextField(_("compétences requises"), blank=True, null=True)
     requirements = models.TextField(_("exigences"), blank=True, null=True)
