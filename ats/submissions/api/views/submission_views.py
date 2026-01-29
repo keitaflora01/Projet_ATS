@@ -8,7 +8,26 @@ from ats.applications.models.applications_model import Application
 from ats.agent.tasks import process_application_ai
 from django.db import transaction
 
-# 
+
+class SubmissionListView(generics.ListAPIView):
+    """
+    Liste des soumissions visibles pour l'utilisateur connecté
+    """
+    serializer_class = SubmissionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == "admin":
+            return Submission.objects.all()
+        elif user.role == "recruiter":
+            return Submission.objects.filter(job_offer__recruiter__user=user)
+        elif user.role == "candidate":
+            return Submission.objects.filter(candidate=user)
+        return Submission.objects.none()
+
+@extend_schema(summary="Liste des candidatures/soumissions")
+
 class SubmissionCreateView(generics.CreateAPIView):
     serializer_class = SubmissionCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -57,6 +76,7 @@ class SubmissionCreateView(generics.CreateAPIView):
         # Use SubmissionSerializer for response
         response_serializer = SubmissionSerializer(submission)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class SubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
     """

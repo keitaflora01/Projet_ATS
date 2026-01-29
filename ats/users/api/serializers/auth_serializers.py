@@ -22,7 +22,7 @@ class RecruiterProfileSerializer(serializers.ModelSerializer):
             "company_name",
             "company_website",
             "company_description",
-            "company_logo_url",
+            "company_logo_file",
             "phone",
             "position",
         )
