@@ -17,7 +17,7 @@ class RecruiterProfile(AtsBaseModel):
     company_name = models.CharField(_("nom de l'entreprise"), max_length=255)
     company_website = models.URLField(_("site web de l'entreprise"), blank=True, null=True)
     company_description = models.TextField(_("description de l'entreprise"), blank=True, null=True)
-    company_logo_url = models.URLField(_("logo de l'entreprise"), blank=True, null=True)
+    company_logo_file = models.FileField(_("logo de l'entreprise"), blank=True, null=True)
     phone = models.CharField(_("téléphone"), max_length=50, blank=True, null=True)
     position = models.CharField(_("poste"), max_length=150, blank=True, null=True, help_text=_("Ex: Responsable RH, Talent Acquisition Manager"))
 
@@ -33,7 +33,5 @@ class RecruiterProfile(AtsBaseModel):
         return f"{self.company_name}{position} ({self.user.email})"
 
 
-# Backwards-compatible alias: some parts of the code/tests expect a model named
-# `Recruiter`. Keep the canonical name `RecruiterProfile` but expose `Recruiter`
-# to avoid ImportError when importing `Recruiter`.
+
 Recruiter = RecruiterProfile

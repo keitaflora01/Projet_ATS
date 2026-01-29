@@ -1,4 +1,3 @@
-# ats/recruiters/api/serializers/recruiters_serializers.py
 from rest_framework import serializers
 from ats.recruiters.models.recruiters_model import RecruiterProfile
 from ats.users.models.user_model import User
@@ -17,7 +16,7 @@ class RecruiterSerializer(serializers.ModelSerializer):
             "company_name",
             "company_website",
             "company_description",
-            "company_logo_url",
+            "company_logo_file",
             "phone",
             "position",
             "created",
