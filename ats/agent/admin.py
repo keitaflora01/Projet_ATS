@@ -86,9 +86,14 @@ class AIAnalysisResultAdmin(admin.ModelAdmin):
 
     # AFFICHAGE SCORE COLORÉ (ici, pas dans le modèle)
     def score_colored(self, obj):
-        score = obj.matching_score
-        color = "green" if score >= 80 else "orange" if score >= 60 else "red"
-        return format_html('<strong style="color:{};">{} / 100</strong>', color, score)
+        # ensure numeric and pre-format to avoid SafeString/format issues
+        try:
+            score_val = float(obj.matching_score)
+        except Exception:
+            score_val = 0.0
+        color = "green" if score_val >= 80 else "orange" if score_val >= 60 else "red"
+        formatted = f"{score_val:.0f}"
+        return format_html('<strong style="color:{};">{} / 100</strong>', color, formatted)
     score_colored.short_description = "Score"  # ← Maintenant ça marche !
 
     def submission_display(self, obj):
@@ -116,9 +121,14 @@ class AIAnalysisResultAdmin(admin.ModelAdmin):
     recommendation_badge.short_description = "Recommandation"
 
     def confidence_display(self, obj):
-        conf = obj.confidence * 100
-        color = "green" if conf >= 80 else "orange" if conf >= 60 else "red"
-        return format_html('<strong style="color:{};">{:.0f}%</strong>', color, conf)
+        # ensure numeric and pre-format to avoid SafeString/format issues
+        try:
+            conf_val = float(obj.confidence) * 100
+        except Exception:
+            conf_val = 0.0
+        color = "green" if conf_val >= 80 else "orange" if conf_val >= 60 else "red"
+        formatted = f"{conf_val:.0f}%"
+        return format_html('<strong style="color:{};">{}</strong>', color, formatted)
     confidence_display.short_description = "Confiance"
 
     def raw_preview(self, obj):
