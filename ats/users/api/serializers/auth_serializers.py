@@ -40,6 +40,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={"input_type": "password"})
     password2 = serializers.CharField(write_only=True, required=True, label="Confirmer le mot de passe")
 
+    profile_photo = serializers.ImageField(
+        required=False,
+        allow_null=True,
+        write_only=True,           
+        allow_empty_file=False,
+    )
+
     candidate_profile = CandidateProfileSerializer(required=False, write_only=True)
     recruiter_profile = RecruiterProfileSerializer(required=False, write_only=True)
 
@@ -51,6 +58,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "role",
             "password",
             "password2",
+            "profile_photo",
             "candidate_profile",
             "recruiter_profile",
         )
@@ -78,6 +86,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("password2")
+        profile_photo = validated_data.pop("profile_photo", None)
+
         password = validated_data.pop("password")
         candidate_data = validated_data.pop("candidate_profile", None)
         recruiter_data = validated_data.pop("recruiter_profile", None)
@@ -92,6 +102,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             )
             user.is_verified = False
             user.save()
+
+            if profile_photo:
+                user.profile_photo = profile_photo
+                user.save(update_fields=["profile_photo"])
 
             if role == UserRole.CANDIDATE and candidate_data:
                 Candidate.objects.create(user=user, **candidate_data)
