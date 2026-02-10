@@ -20,6 +20,12 @@ class RecruiterProfile(AtsBaseModel):
     company_logo_file = models.FileField(_("logo de l'entreprise"), blank=True, null=True)
     phone = models.CharField(_("téléphone"), max_length=50, blank=True, null=True)
     position = models.CharField(_("poste"), max_length=150, blank=True, null=True, help_text=_("Ex: Responsable RH, Talent Acquisition Manager"))
+    profile_photo = models.ImageField(
+        _("photo de profil"),
+        upload_to="profiles/recruiters/",
+        blank=True,
+        null=True,
+    )
 
     
 

@@ -84,7 +84,7 @@ class JobOfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         GET : tout le monde (public)
         PUT/PATCH/DELETE : seulement le propriétaire recruteur
         """
-        if self.request.method == 'GET':
+        if self.request.method in ['GET', 'OPTIONS', 'HEAD']:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated(), IsOwnerRecruiter()]
 

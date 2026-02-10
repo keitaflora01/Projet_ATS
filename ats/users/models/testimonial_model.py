@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ats.core.models import AtsBaseModel
 from ats.users.models.user_model import User
-
+from django.utils.html import format_html   
 class Testimonial(AtsBaseModel):
     """
     Avis / Témoignage laissé par un utilisateur authentifié.
@@ -53,3 +53,10 @@ class Testimonial(AtsBaseModel):
     @property
     def short_message(self):
         return self.message[:100] + ("..." if len(self.message) > 100 else "")
+    
+    @property
+    def profile_photo_url(self):
+        if self.user.profile_photo:
+            return self.user.profile_photo.url
+        return None
+

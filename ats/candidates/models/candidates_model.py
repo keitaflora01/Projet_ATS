@@ -26,6 +26,13 @@ class Candidate(AtsBaseModel):
         help_text=_("Présentez-vous en quelques lignes (facultatif)")
     )
 
+    profile_photo = models.ImageField(
+        _("photo de profil"),
+        upload_to="profiles/candidates/",
+        blank=True,
+        null=True,
+    )
+
     class Meta:
         verbose_name = _("candidat")
         verbose_name_plural = _("candidats")

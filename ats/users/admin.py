@@ -65,6 +65,7 @@ class ServiceAdmin(admin.ModelAdmin):
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = (
+        "profile_photo_preview",     
         "user_link",
         "short_message",
         "rating_stars",
@@ -72,6 +73,7 @@ class TestimonialAdmin(admin.ModelAdmin):
         "order",
         "created",
     )
+    list_display_links = ("user_link",)  
     list_filter = ("is_approved", "rating", "created")
     search_fields = ("user__email", "user__full_name", "message")
     list_editable = ("order",)
@@ -112,11 +114,35 @@ class TestimonialAdmin(admin.ModelAdmin):
     reject_selected.short_description = "Rejeter les avis sélectionnés"
 
     fieldsets = (
-        ("Informations", {"fields": ("user", "message", "rating")}),
-        ("Modération & Ordre", {"fields": ("is_approved", "order")}),
-        ("Dates", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+        ("Informations", {
+            "fields": ("user", "profile_photo_preview", "message", "rating")
+        }),
+        ("Modération & Ordre", {
+            "fields": ("is_approved", "order")
+        }),
+        ("Dates", {
+            "fields": ("created", "modified"),
+            "classes": ("collapse",)
+        }),
     )
 
+    readonly_fields = ("profile_photo_preview", "created", "modified")
+
+    @admin.display(description="Photo")
+    def profile_photo_preview(self, obj):
+        if obj.user and getattr(obj.user, "profile_photo", None):
+            try:
+                url = obj.user.profile_photo.url
+            except Exception:
+                url = None
+            if url:
+                return format_html(
+                    '<img src="{}" style="max-height: 60px; border-radius: 50%; object-fit: cover;" />',
+                    url
+                )
+        return format_html(
+            '<span style="color:#999; font-style:italic;">— pas de photo —</span>'
+        )
 
 @admin.register(Policy)
 class PolicyAdmin(admin.ModelAdmin):

@@ -6,13 +6,13 @@ from ats.candidates.models.candidates_model import Candidate
 
 @admin.register(Candidate)
 class CandidateAdmin(admin.ModelAdmin):
-    list_display = ("user_display", "bio_preview")
+    list_display = ("user_display", "profile_photo_preview", "bio_preview")
     search_fields = ("user__email", "user__full_name", "bio")
-    readonly_fields = ("bio_full",)
+    readonly_fields = ("bio_full", "profile_photo_preview")
     autocomplete_fields = ("user",)
 
     fieldsets = (
-        ("Utilisateur associé", {"fields": ("user",)}),
+        ("Utilisateur associé", {"fields": ("user", "profile_photo")} ),
         ("Biographie", {"fields": ("bio", "bio_full")}),
     )
 
@@ -48,3 +48,19 @@ class CandidateAdmin(admin.ModelAdmin):
             )
         return format_html('<em style="color: #999;">Aucune biographie</em>')
     bio_full.short_description = "Biographie complète"
+
+    def profile_photo_preview(self, obj):
+        # Favorise la photo du profil liée au Candidate, sinon celle de l'utilisateur
+        img = None
+        if getattr(obj, "profile_photo", None):
+            img = obj.profile_photo
+        elif getattr(obj.user, "profile_photo", None):
+            img = obj.user.profile_photo
+
+        if img:
+            return format_html(
+                '<img src="{}" style="height: 60px; width:60px; object-fit:cover; border-radius:50%;" />',
+                img.url,
+            )
+        return "(Aucune photo)"
+    profile_photo_preview.short_description = "Photo profil"

@@ -30,7 +30,7 @@ class Interview(AtsBaseModel):
     submission = models.ForeignKey(
         "submissions.Submission",
         on_delete=models.CASCADE,
-        related_name="interviews",  # submission.interviews.all()
+        related_name="interviews", 
         verbose_name=_("candidature")
     )
     

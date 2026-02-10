@@ -77,3 +77,4 @@ class InterviewAdmin(admin.ModelAdmin):
             return format_html("<pre>{}</pre>", str(obj.questions))
         return "-"
     questions_preview.short_description = "Questions (Aperçu)"
+    

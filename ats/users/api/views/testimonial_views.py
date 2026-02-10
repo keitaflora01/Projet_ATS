@@ -12,6 +12,7 @@ class TestimonialListCreateView(generics.ListCreateAPIView):
     - POST : Créer un nouvel avis (utilisateur connecté)
     """
     serializer_class = TestimonialSerializer
+    permission_classes = [permissions.AllowAny]  
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -25,6 +26,9 @@ class TestimonialListCreateView(generics.ListCreateAPIView):
 
     @extend_schema(summary="Lister les avis approuvés ou créer un avis")
     def post(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            self.permission_classes = [permissions.IsAuthenticated]
+            self.check_permissions(request)
         return super().post(request, *args, **kwargs)
 
 

@@ -7,10 +7,11 @@ from ats.recruiters.models.recruiters_model import  RecruiterProfile
 class RecruiterAdmin(admin.ModelAdmin):
     list_display = (
         "company_name",
-        "user_display",         
+        "user_display",
+        "profile_photo_preview",
         "position",
         "phone",
-        "company_logo_preview",  
+        "company_logo_preview",
         "created",
     )
     list_filter = ("created", "position")
@@ -20,7 +21,7 @@ class RecruiterAdmin(admin.ModelAdmin):
         "user__full_name",       
         "phone",
     )
-    readonly_fields = ("created", "company_logo_preview")
+    readonly_fields = ("created", "company_logo_preview", "profile_photo_preview")
     date_hierarchy = "created"
     ordering = ("-created",)
 
@@ -28,6 +29,7 @@ class RecruiterAdmin(admin.ModelAdmin):
         ("Informations entreprise", {
             "fields": (
                 "user",
+                "profile_photo",
                 "company_name",
                 "company_website",
                 "company_description",
@@ -59,3 +61,19 @@ class RecruiterAdmin(admin.ModelAdmin):
             )
         return "(Aucun logo)"
     company_logo_preview.short_description = "Aperçu logo"
+
+    def profile_photo_preview(self, obj):
+        # Use recruiter profile photo if present, otherwise user's
+        img = None
+        if getattr(obj, "profile_photo", None):
+            img = obj.profile_photo
+        elif getattr(obj.user, "profile_photo", None):
+            img = obj.user.profile_photo
+
+        if img:
+            return format_html(
+                '<img src="{}" style="height: 60px; width:60px; object-fit:cover; border-radius:50%;" />',
+                img.url,
+            )
+        return "(Aucune photo)"
+    profile_photo_preview.short_description = "Photo profil"
