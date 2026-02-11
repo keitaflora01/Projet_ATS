@@ -93,7 +93,15 @@ class JobOfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        print(f"👁️ Consultation de l'offre ID={instance.id} par {request.user.email}")
+        
+        user_identifier = (
+            request.user.email 
+            if request.user.is_authenticated 
+            else "visiteur anonyme"
+        )
+        
+        print(f"👁️ Consultation de l'offre ID={instance.id} par {user_identifier}")
+        
         return super().retrieve(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
