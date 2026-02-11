@@ -30,6 +30,17 @@ class Interview(AtsBaseModel):
         blank=True,
         help_text=_("Liste des questions générées par l'IA")
     )
+    answers = models.JSONField(
+        _("réponses du candidat"),
+        default=dict,
+        blank=True,
+        help_text=_("Format : {'1': 'réponse à la question 1', '2': '...'}")
+    )
+    completed_at = models.DateTimeField(
+        _("date de complétion par le candidat"),
+        null=True,
+        blank=True
+    )
 
     status = models.CharField(
         _("statut"),

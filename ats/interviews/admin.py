@@ -10,18 +10,21 @@ class InterviewAdmin(admin.ModelAdmin):
     list_display = (
         "submission_display",
         "scheduled_at_formatted",
+        "completed_at",
+        "is_completed",
         "status_badge",
     )
     list_filter = (
         "status",
         "scheduled_at",
+        "completed_at",
     )
     search_fields = (
         "application__submission__candidate__custom_user__email",
         "application__submission__candidate__custom_user__first_name",
         "job_offer__title",
     )
-    readonly_fields = ("created", "modified", "questions_preview")
+    readonly_fields = ("created", "modified", "questions_preview", "is_completed")
     autocomplete_fields = ("application", "job_offer")
     date_hierarchy = "scheduled_at"
     ordering = ("-scheduled_at",)
@@ -36,7 +39,7 @@ class InterviewAdmin(admin.ModelAdmin):
             )
         }),
         ("Questions & Notes", {"fields": ("questions_preview", "questions")}),
-        ("Dates", {"fields": ("created", "modified"), "classes": ("collapse",)}),
+        ("Dates", {"fields": ("created", "modified", "completed_at"), "classes": ("collapse",)}),
     )
 
     def submission_display(self, obj):
@@ -77,4 +80,12 @@ class InterviewAdmin(admin.ModelAdmin):
             return format_html("<pre>{}</pre>", str(obj.questions))
         return "-"
     questions_preview.short_description = "Questions (Aperçu)"
+
+    def is_completed(self, obj):
+        """Computed boolean shown in admin: True if completed_at set or status is COMPLETED."""
+        if obj is None:
+            return False
+        return bool(obj.completed_at) or (getattr(obj, 'status', None) == InterviewStatus.COMPLETED)
+    is_completed.short_description = "Complété"
+    is_completed.boolean = True
     
