@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from ats.interviews.models.interview_model import Interview, InterviewStatus
+from ats.interviews.models.interview_model import Interview
 from django.utils import timezone
 
 
 class InterviewSerializer(serializers.ModelSerializer):
-    interview_type_display = serializers.CharField(source='get_interview_type_display', read_only=True)
-    interview_status_display = serializers.CharField(source='get_interview_status_display', read_only=True)
+    """Serializer matching `ats.interviews.models.interview_model.Interview`.
+
+    Exposes helper display fields (status, candidate name, job title) and
+    validates that the authenticated recruiter owns the job offer when creating
+    an interview.
+    """
+    interview_status_display = serializers.SerializerMethodField(read_only=True)
     candidate_name = serializers.SerializerMethodField(read_only=True)
     job_title = serializers.SerializerMethodField(read_only=True)
 
@@ -13,42 +18,55 @@ class InterviewSerializer(serializers.ModelSerializer):
         model = Interview
         fields = [
             'id',
-            'submission',                    
-            'interview_type',
-            'interview_type_display',
+            'application',
+            'job_offer',
+            'questions',
+            'answers',
             'scheduled_at',
-            'location_or_link',
-            'notes',
-            'interview_status',
+            'completed_at',
+            'status',
             'interview_status_display',
             'created',
             'modified',
             'candidate_name',
             'job_title',
         ]
-        read_only_fields = ['id', 'created', 'modified', 'interview_type_display', 'interview_status_display', 'candidate_name', 'job_title']
+        read_only_fields = ['id', 'created', 'modified', 'interview_status_display', 'candidate_name', 'job_title']
+
+    def get_interview_status_display(self, obj):
+        try:
+            return obj.get_status_display()
+        except Exception:
+            return None
 
     def get_candidate_name(self, obj):
-        if obj.submission and obj.submission.candidate:
-            return obj.submission.candidate.get_full_name() or obj.submission.candidate.email
+        # application -> submission -> candidate
+        if getattr(obj, 'application', None) and getattr(obj.application, 'submission', None) and obj.application.submission.candidate:
+            return obj.application.submission.candidate.get_full_name() or obj.application.submission.candidate.email
         return "—"
 
     def get_job_title(self, obj):
-        if obj.submission and obj.submission.job_offer:
-            return obj.submission.job_offer.title
+        # job_offer exists on the Interview model
+        if getattr(obj, 'job_offer', None):
+            return obj.job_offer.title
+        # fallback to application -> submission -> job_offer
+        if getattr(obj, 'application', None) and getattr(obj.application, 'submission', None) and obj.application.submission.job_offer:
+            return obj.application.submission.job_offer.title
         return "—"
 
     def validate_scheduled_at(self, value):
-        if value < timezone.now():
+        if value and value < timezone.now():
             raise serializers.ValidationError("La date d'entretien ne peut pas être dans le passé.")
         return value
 
     def validate(self, attrs):
-        if 'submission' in attrs:
-            submission = attrs['submission']
-            recruiter = self.context['request'].user.recruteur_profile  
-            if submission.job_offer.recruter != recruiter:  
+        # Ensure recruiter owns the job offer when creating an interview
+        request = self.context.get('request')
+        if request and request.user and request.user.role == 'recruiter' and 'application' in attrs:
+            application = attrs['application']
+            recruiter = request.user.recruiter_profile
+            if application.submission.job_offer.recruiter != recruiter:
                 raise serializers.ValidationError({
-                    "submission": "Vous n'êtes pas autorisé à programmer un entretien pour cette candidature."
+                    "application": "Vous n'êtes pas autorisé à programmer un entretien pour cette candidature."
                 })
         return attrs
