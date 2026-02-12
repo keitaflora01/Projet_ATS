@@ -12,18 +12,34 @@ class SubmissionSerializer(serializers.ModelSerializer):
     candidate = UserSerializer(read_only=True)
     job_offer = JobOfferSerializer(read_only=True)
     application = ApplicationSerializer(read_only=True)  # Inclut CV, LM, score IA, resume, statut
-
+   
+    # Retourne le résumé généré par l'IA pour l'application associée (si présent)
+    ai_summary = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Submission
         fields = [
             "id",
             "candidate",
             "job_offer",
+            'ai_summary',
             "status",
             "application",
             "created",
         ]
         read_only_fields = ["id", "created"]
+
+    def get_ai_summary(self, obj):
+        """Récupère le champ `resume` de l'Application liée à cette Submission.
+
+        Si l'application n'existe pas ou que `resume` est vide, retourne None.
+        """
+        try:
+            application = getattr(obj, 'application', None)
+            if application and getattr(application, 'resume', None):
+                return application.resume
+        except Exception:
+            pass
+        return None
 class SubmissionCreateSerializer(serializers.Serializer):
     job_offer_id = serializers.UUIDField(required=True)
     cover_letter_text = serializers.CharField(required=False, allow_blank=True)
