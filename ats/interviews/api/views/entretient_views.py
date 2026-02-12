@@ -21,10 +21,10 @@ class InterviewListCreateView(generics.ListCreateAPIView):
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
-        submission_id = self.kwargs.get('submission_id')
-        if submission_id:
-            # Interview links to Application, which links to Submission
-            return Interview.objects.filter(application__submission_id=submission_id)
+        application_id = self.kwargs.get('application_id')
+        if application_id:
+            # Directly filter by Application id
+            return Interview.objects.filter(application_id=application_id)
         return Interview.objects.none()
 
     def perform_create(self, serializer):
@@ -32,14 +32,15 @@ class InterviewListCreateView(generics.ListCreateAPIView):
             raise permissions.PermissionDenied("Seuls les recruteurs peuvent programmer un entretien.")
 
         recruiter_profile = self.request.user.recruiter_profile
-        # Get application from URL parameter (submission_id) instead of expecting it in payload
-        submission_id = self.kwargs.get('submission_id')
-        if not submission_id:
+
+        # Get application from URL parameter (application_id) instead of expecting it in payload
+        application_id = self.kwargs.get('application_id')
+        if not application_id:
             raise serializers.ValidationError({
-                'submission_id': 'submission_id manquant dans l\'URL.'
+                'application_id': "application_id manquant dans l'URL."
             })
 
-        application = get_object_or_404(Application, submission_id=submission_id)
+        application = get_object_or_404(Application, pk=application_id)
 
         # Validate ownership of the job offer
         if application.submission.job_offer.recruiter != recruiter_profile:

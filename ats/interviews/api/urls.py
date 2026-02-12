@@ -9,7 +9,7 @@ urlpatterns = [
     path('candidate/me/answers/', CandidateInterviewAnswersListView.as_view(), name='candidate-interviews-list'),
     path('<uuid:id>/', InterviewDetailView.as_view(), name='interview-detail'),
     path('<uuid:id>/answers/', InterviewAnswerCreateUpdateView.as_view(), name='interview-submit-answers'),
-    path('submission/<uuid:submission_id>/interviews/', InterviewListCreateView.as_view(), name='interview-list-create'),
+    path('application/<uuid:application_id>/interviews/', InterviewListCreateView.as_view(), name='interview-list-create'),
 
     path('interviews/<uuid:id>/', InterviewDetailView.as_view(), name='interview-detail'),
 ]
