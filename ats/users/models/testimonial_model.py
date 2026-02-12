@@ -29,7 +29,7 @@ class Testimonial(AtsBaseModel):
     
     is_approved = models.BooleanField(
         _("approuvé / visible"),
-        default=False,
+        default=True,
         help_text=_("Validé par un admin pour être affiché publiquement")
     )
     
