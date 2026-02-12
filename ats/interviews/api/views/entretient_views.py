@@ -1,9 +1,10 @@
 
 from ats.interviews.api.serializers.entretient_serializers import InterviewSerializer
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, serializers
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from ats.interviews.models.interview_model import Interview
+from ats.applications.models.applications_model import Application
 
 
 class InterviewListCreateView(generics.ListCreateAPIView):
@@ -31,13 +32,23 @@ class InterviewListCreateView(generics.ListCreateAPIView):
             raise permissions.PermissionDenied("Seuls les recruteurs peuvent programmer un entretien.")
 
         recruiter_profile = self.request.user.recruiter_profile
-        application = serializer.validated_data.get('application')
+        # Get application from URL parameter (submission_id) instead of expecting it in payload
+        submission_id = self.kwargs.get('submission_id')
+        if not submission_id:
+            raise serializers.ValidationError({
+                'submission_id': 'submission_id manquant dans l\'URL.'
+            })
+
+        application = get_object_or_404(Application, submission_id=submission_id)
 
         # Validate ownership of the job offer
-        if not application or application.submission.job_offer.recruiter != recruiter_profile:
+        if application.submission.job_offer.recruiter != recruiter_profile:
             raise permissions.PermissionDenied("Cette candidature ne vous appartient pas.")
 
-        serializer.save()
+        # Ensure job_offer is set from the application
+        job_offer = application.submission.job_offer
+
+        serializer.save(application=application, job_offer=job_offer)
 
 
 

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ats.interviews.models.interview_model import Interview
 from django.utils import timezone
+from django.utils.timezone import localtime
 
 
 class InterviewSerializer(serializers.ModelSerializer):
@@ -13,25 +14,26 @@ class InterviewSerializer(serializers.ModelSerializer):
     interview_status_display = serializers.SerializerMethodField(read_only=True)
     candidate_name = serializers.SerializerMethodField(read_only=True)
     job_title = serializers.SerializerMethodField(read_only=True)
+    scheduled_date = serializers.SerializerMethodField(read_only=True)
+    scheduled_time = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Interview
         fields = [
             'id',
-            'application',
-            'job_offer',
-            'questions',
             'answers',
             'scheduled_at',
             'completed_at',
             'status',
             'interview_status_display',
+            'scheduled_date',
+            'scheduled_time',
             'created',
             'modified',
             'candidate_name',
             'job_title',
         ]
-        read_only_fields = ['id', 'created', 'modified', 'interview_status_display', 'candidate_name', 'job_title']
+        read_only_fields = ['id', 'created', 'modified', 'interview_status_display', 'candidate_name', 'job_title', 'scheduled_date', 'scheduled_time']
 
     def get_interview_status_display(self, obj):
         try:
@@ -53,6 +55,20 @@ class InterviewSerializer(serializers.ModelSerializer):
         if getattr(obj, 'application', None) and getattr(obj.application, 'submission', None) and obj.application.submission.job_offer:
             return obj.application.submission.job_offer.title
         return "—"
+
+    def get_scheduled_date(self, obj):
+        """Return the scheduled date portion (YYYY-MM-DD) of scheduled_at in local time."""
+        if getattr(obj, 'scheduled_at', None):
+            dt = localtime(obj.scheduled_at)
+            return dt.date().isoformat()
+        return None
+
+    def get_scheduled_time(self, obj):
+        """Return the scheduled time portion (HH:MM) of scheduled_at in local time."""
+        if getattr(obj, 'scheduled_at', None):
+            dt = localtime(obj.scheduled_at)
+            return dt.time().strftime('%H:%M')
+        return None
 
     def validate_scheduled_at(self, value):
         if value and value < timezone.now():
