@@ -28,7 +28,6 @@ class CandidateSerializer(serializers.ModelSerializer):
         return instance
 
     def get_profile_photo_url(self, obj):
-        # Prefer profile photo on the Candidate model, fallback to user's profile photo
         if getattr(obj, "profile_photo", None):
             return obj.profile_photo.url if obj.profile_photo else None
         if getattr(obj.user, "profile_photo", None):

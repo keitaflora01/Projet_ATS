@@ -17,14 +17,14 @@ urlpatterns = [
 
     path("applications/", include("ats.applications.urls")), 
     path("submissions/", include("ats.submissions.urls")),
-    path("interviews/api/", include("ats.interviews.api.urls")), # New Endpoint
+    path("interviews/api/", include("ats.interviews.api.urls")), 
     path("candidates/", include("ats.candidates.urls")),
     path("recruiters/", include("ats.recruiters.urls")),
-
-    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
 
 if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
     urlpatterns += [
         path(
             "400/",

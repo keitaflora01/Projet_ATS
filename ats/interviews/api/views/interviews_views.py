@@ -1,8 +1,8 @@
 from datetime import timezone
+from ats.interviews.api.serializers.interviews_serializers import CandidateInterviewListSerializer, InterviewAnswerSerializer, InterviewDetailSerializer, InterviewQuestionsSerializer
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from ats.interviews.models.interview_model import Interview
-from ats.interviews.api.serializers import CandidateInterviewListSerializer, InterviewAnswerSerializer, InterviewDetailSerializer, InterviewQuestionsSerializer
 
 class InterviewQuestionsView(generics.RetrieveAPIView):
     """
@@ -77,7 +77,6 @@ class InterviewAnswerCreateUpdateView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Seulement les entretiens du candidat connecté
         return Interview.objects.filter(
             application__submission__candidate=self.request.user
         )

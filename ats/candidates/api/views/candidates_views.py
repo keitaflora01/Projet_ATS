@@ -33,13 +33,11 @@ class CandidateDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         obj = super().get_object()
-        # Seul le candidat lui-même ou admin peut modifier/supprimer
         if self.request.user.role != "admin" and obj.user != self.request.user:
             self.permission_denied(self.request)
         return obj
 
     def perform_destroy(self, instance):
-        # Seul admin peut supprimer
         if self.request.user.role != "admin":
             self.permission_denied(self.request)
         instance.delete()

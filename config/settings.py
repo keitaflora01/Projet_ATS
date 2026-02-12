@@ -200,7 +200,11 @@ ACCOUNT_ALLOW_REGISTRATION = env("DJANGO_ACCOUNT_ALLOW_REGISTRATION")
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_ADAPTER = "ats.users.adapters.AccountAdapter"
+# Use the default allauth adapter so email sending (confirmation, password reset)
+# works out of the box. Previously this pointed to a placeholder adapter which
+# does not implement the methods allauth expects (like `send_mail`). That
+# prevented verification emails from being sent.
+ACCOUNT_ADAPTER = "allauth.account.adapter.DefaultAccountAdapter"
 ACCOUNT_FORMS = {"signup": "ats.users.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "ats.users.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_FORMS = {"signup": "ats.users.forms.UserSocialSignupForm"}
