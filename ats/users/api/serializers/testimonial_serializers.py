@@ -64,3 +64,4 @@ class TestimonialSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"detail": "Vous avez déjà laissé un avis."})
         return attrs
     
+    

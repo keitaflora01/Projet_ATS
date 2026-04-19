@@ -24,12 +24,6 @@ class TestimonialListCreateView(generics.ListCreateAPIView):
             return Testimonial.objects.filter(is_approved=True).order_by('order', '-created')
         return Testimonial.objects.filter(user=self.request.user)
 
-    @extend_schema(summary="Lister les avis approuvés ou créer un avis")
-    def post(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            self.permission_classes = [permissions.IsAuthenticated]
-            self.check_permissions(request)
-        return super().post(request, *args, **kwargs)
 
 
 class TestimonialDetailView(generics.RetrieveUpdateDestroyAPIView):

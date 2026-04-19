@@ -267,3 +267,8 @@ LOGGING = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 from config.jazzmin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
+
+# Production settings
+if not DEBUG:
+    ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[".onrender.com"])
+    SECRET_KEY = env("DJANGO_SECRET_KEY")

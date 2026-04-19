@@ -1,0 +1,55 @@
+databases:
+  - name: ats-db
+    plan: free
+    databaseName: ats
+    user: ats
+
+services:
+  - type: web
+    name: ats-web
+    env: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application --log-file -"
+    envVars:
+      - key: DJANGO_READ_DOT_ENV_FILE
+        value: "False"
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ats-db
+          property: connectionString
+      - key: REDIS_URL
+        fromKeyValue:
+          name: ats-redis
+          property: connectionString
+
+  - type: worker
+    name: ats-celery-worker
+    env: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "celery -A config worker -B --loglevel=info"
+    envVars:
+      - key: DJANGO_READ_DOT_ENV_FILE
+        value: "False"
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ats-db
+          property: connectionString
+      - key: REDIS_URL
+        fromKeyValue:
+          name: ats-redis
+          property: connectionString
+
+keyValueStores:
+  - name: ats-redis
+    plan: free
+    
