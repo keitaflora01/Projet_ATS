@@ -95,7 +95,7 @@ google-api-core==2.29.0
 google-api-python-client==2.188.0
 google-auth==2.47.0
 google-auth-httplib2==0.3.0
-google-generativeai==0.8.6
+# google-generativeai==0.8.6
 googleapis-common-protos==1.72.0
 greenlet==3.3.0
 grpcio==1.76.0
@@ -163,7 +163,7 @@ pluggy==1.6.0
 prettytable==2.5.0
 prompt_toolkit==3.0.52
 proto-plus==1.27.0
-protobuf==5.29.5
+# protobuf==5.29.5
 psycopg==3.2.11
 psycopg-c==3.2.11
 psycopg2-binary==2.9.11
