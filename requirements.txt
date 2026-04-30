@@ -77,7 +77,6 @@ django-storages==1.14.6
 django-timezone-field==7.2.1
 django_celery_results==2.6.0
 djangorestframework==3.16.1
-djangorestframework-jwt==1.11.0
 djangorestframework_simplejwt==5.5.1
 dnspython==2.8.0
 drf-spectacular==0.29.0
@@ -244,7 +243,7 @@ tzlocal==5.3.1
 # system packages removed: ubuntu-drivers-common, ubuntu-pro-client
 uritemplate==4.2.0
 uritools==5.0.0
-urllib3==2.6.3
+# urllib3 (version supprimée pour compatibilité)
 # system package removed: usb-creator (install via OS package manager if needed)
 uv==0.9.5
 uvicorn==0.29.0
