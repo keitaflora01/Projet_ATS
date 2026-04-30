@@ -99,7 +99,6 @@ future==0.18.2
 # googleapis-common-protos==1.72.0
 greenlet==3.3.0
 grpcio==1.76.0
-grpcio-status==1.71.2
 gunicorn==23.0.0
 h11==0.16.0
 html5lib==1.1
@@ -129,7 +128,6 @@ lazr.restfulclient==0.14.4
 lazr.uri==1.0.6
 lockfile==0.12.2
 lxml==6.0.2
-macaroonbakery==1.3.1
 Mako==1.1.3
 Markdown==3.10.1
 markdown-it-py==4.0.0
