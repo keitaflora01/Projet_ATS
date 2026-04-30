@@ -237,7 +237,6 @@ tinycss2==1.4.0
 tinyhtml5==2.0.0
 tomli==2.0.1
 tqdm==4.67.1
-ttystatus==0.38
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.3
