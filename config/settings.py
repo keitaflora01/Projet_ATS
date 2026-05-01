@@ -32,9 +32,14 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DEBUG", default=False)
 
 ALLOWED_HOSTS = env.list(
-    "DJANGO_ALLOWED_HOSTS", 
-    default=["localhost", "127.0.0.1", ".onrender.com", "projet-ats.onrender.com"]
-)   
+    "DJANGO_ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+        ".onrender.com",           
+        "projet-ats.onrender.com",  
+    ]
+)
 # Application definition
 DJANGO_APPS = [
     "django.contrib.auth",
@@ -273,13 +278,15 @@ from config.jazzmin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
 # Production settings
 if not DEBUG:
     SECRET_KEY = env("DJANGO_SECRET_KEY")
-    # Sécurité supplémentaire
+    
+    # Sécurité HTTPS (important sur Render)
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
 else:
     SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-change-me-in-production!!!")
-
