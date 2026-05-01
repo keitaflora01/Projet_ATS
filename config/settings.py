@@ -29,10 +29,12 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = env("DEBUG", default=False)
 
-ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS")
-
+ALLOWED_HOSTS = env.list(
+    "DJANGO_ALLOWED_HOSTS", 
+    default=["localhost", "127.0.0.1", ".onrender.com", "projet-ats.onrender.com"]
+)   
 # Application definition
 DJANGO_APPS = [
     "django.contrib.auth",
@@ -182,7 +184,7 @@ STATICFILES_FINDERS = [
 MEDIA_URL = "/media/"
 MEDIA_ROOT = APPS_DIR / "media"
 
-DEBUG = True
+# DEBUG = True
 
 
 AUTH_USER_MODEL = "users.User"
@@ -245,7 +247,7 @@ CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 
-SEcure_ssl_REDIRECT = True
+SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -270,5 +272,14 @@ from config.jazzmin import JAZZMIN_SETTINGS, JAZZMIN_UI_TWEAKS
 
 # Production settings
 if not DEBUG:
-    ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[".onrender.com"])
     SECRET_KEY = env("DJANGO_SECRET_KEY")
+    # Sécurité supplémentaire
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-change-me-in-production!!!")
+
