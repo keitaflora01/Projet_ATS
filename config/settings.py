@@ -287,6 +287,21 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
+    
 else:
     SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-change-me-in-production!!!")
+
+
+# ====================== FRONTEND INTEGRATION (ATS_project/frontend) ======================
+
+FRONTEND_BUILD_DIR = BASE_DIR / "ATS_project" / "frontend" / "dist"
+
+if not DEBUG:
+    # Ajouter le build du frontend sans écraser les autres dossiers
+    STATICFILES_DIRS = STATICFILES_DIRS + [FRONTEND_BUILD_DIR]
+
+    # Ajouter le dossier du frontend aux templates (sans écraser)
+    TEMPLATES[0]["DIRS"] = TEMPLATES[0]["DIRS"] + [FRONTEND_BUILD_DIR]
+
+    # Important pour WhiteNoise en production
+    STATIC_ROOT = BASE_DIR / "staticfiles"
