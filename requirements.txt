@@ -133,7 +133,6 @@ markdown-it-py==4.0.0
 MarkupPy==1.14
 MarkupSafe==2.1.2
 mdurl==0.1.2
-mercurial==6.1.1
 monotonic==1.6
 more-itertools==8.10.0
 mutagen==1.45.1
@@ -171,14 +170,12 @@ pycairo==1.20.1
 pycparser==3.0
 pycryptodome==3.23.0
 pycryptodomex==3.11.0
-pycups==2.0.1
 pydantic==2.12.5
 pydantic-settings==2.14.0
 pydantic_core==2.41.5
 pydyf==0.11.0
 PyGithub==2.8.1
 Pygments==2.19.2
-PyGObject==3.42.1
 pyHanko==0.29.1
 pyhanko-certvalidator==0.27.0
 PyJWT==2.10.1
